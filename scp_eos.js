@@ -18,18 +18,25 @@ module.exports = {
                 sign: true
             });
 
-            eos.getInfo({}).then(data => { 
-                console.log("getInfo: " + JSON.stringify(data));
+            var callback = (err, data) => {
+                if (err) {
+                    console.log("## getInfo ERR: " + JSON.stringify(err));
+                    res.send({err: "undefined"});
+                }
+                else {
+                    console.log("$$ getInfo OK: " + JSON.stringify(data));
+                    var p1 = req.params.p1;
+                    console.log("p1 = " + p1);
+                    res.send(JSON.stringify({
+                        hey: "ok3",
+                        scp_auth_account: config.get("scp_auth_account"),
+                        p1: p1,
+                        getInfo: data,
+                    }));
+                }
+            };
 
-                var p1 = req.params.p1;
-                console.log("p1 = " + p1);
-                res.send(JSON.stringify({
-                    hey: "ok3",
-                    scp_auth_account: config.get("scp_auth_account"),
-                    p1: p1,
-                    getInfo: data,
-                }))
-            });
+            eos.getInfo({}, callback);//.then(data => { 
         }
     }
 
