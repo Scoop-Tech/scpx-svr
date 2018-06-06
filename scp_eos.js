@@ -12,7 +12,7 @@ module.exports = {
             var eos = Eos( {
                 keyProvider: keyProvider_privkey,
                 httpEndpoint: config.get("scp_nodeos_url"),
-                expireInSeconds: 60,
+                expireInSeconds: 3,
                 broadcast: true,
                 debug: false, // API and transactions
                 sign: true
