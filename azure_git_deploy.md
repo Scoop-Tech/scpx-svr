@@ -1,3 +1,5 @@
+# https://code.visualstudio.com/tutorials/nodejs-deployment/getting-started
+
 az webapp deployment user set --user-name <UserName> --password <Password>
 scp_dom / (...88__**)
 
