@@ -8,10 +8,11 @@ console.log('up');
 
 
 /*
- * Main
+ * Main - todo: rate limiting
  */
 app.get('/test1/:p1', function (req, res) { scp_eos.test1(req, res); }); 
 
+app.get('/acc/:pubkey', function (req, res) { scp_eos.new_account(req, res); }); 
 
 
 module.exports = app;
