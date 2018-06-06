@@ -1,7 +1,7 @@
 'use strict';
 
 var express = require('express'); var app = express();
-var scp_eos = require('./scp_eos');
+var scp_eos = require('./scp_eos'); 
 
 app.get('/', function (req, res) { res.send('scp-svr: ok1'); });
 console.log('up');
