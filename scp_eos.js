@@ -40,13 +40,13 @@ module.exports = {
                 receiver: scp_ac_name,
                 bytes: 4096
             })
-            tr.delegatebw({
-                from: config.get("scp_auth_account"),
-                receiver: scp_ac_name,
-                stake_net_quantity: '10.0000 EOS',
-                stake_cpu_quantity: '10.0000 EOS',
-                transfer: 0
-            })
+            // tr.delegatebw({
+            //     from: config.get("scp_auth_account"),
+            //     receiver: scp_ac_name,
+            //     stake_net_quantity: '10.0000 EOS',
+            //     stake_cpu_quantity: '10.0000 EOS',
+            //     transfer: 0
+            // })
         }, callback);
         // var ret = eos.newaccount({
         //     creator: config.get("scp_auth_account"),
