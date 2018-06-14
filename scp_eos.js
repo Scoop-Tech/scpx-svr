@@ -5,16 +5,24 @@
 module.exports = {
     // new member account
     new_account: function (req, res) {
+        console.log(req)
+
+        let scp_ac_name = req.accountName;
+        let publicKeys = req.publicKeys;
+
         var eos_lib = require('./eos_lib'); var eos = eos_lib.init();
         var config = require('./config');
 
         // validate pubkey
         var scp_ac_pubkey = req.params.pubkey;
         var Eos_ecc = require('eosjs-ecc');
-        if (!Eos_ecc.isValidPublic(scp_ac_pubkey)) { res.status(400/*badreq*/).send({err: "bad pubkey"}); return; }
+        if (!Eos_ecc.isValidPublic(publicKeys.owner) || !Eos_ecc.isValidPublic(publicKeys.active)) { 
+            res.status(400/*badreq*/).send( { err: "bad pubkey" } ); 
+            return; 
+        }
 
         // todo - deterministic base32 hash from pubkey would be better
-        var scp_ac_name = eos_lib.gen_account_name(); 
+        // var scp_ac_name = eos_lib.gen_account_name(); 
 
         // todo - check account/pubkey already exists (SCPX lookup?)
         
@@ -28,12 +36,13 @@ module.exports = {
             console.log("$$ new_account OK: " + JSON.stringify(data, null, 2));
             res.status(201/*created*/).send({ res: "ok", txid: data.transaction_id, scp_ac_name: scp_ac_name }); 
         };
+
         var ret = eos.transaction(tr => {
             tr.newaccount({
                 creator: config.get("scp_auth_account"),
                 name: scp_ac_name,
-                owner: scp_ac_pubkey, // pubkey of new eos account - todo: separate owner/active auths
-                active: scp_ac_pubkey 
+                owner: publicKeys.owner,
+                active: publicKeys.active 
             })
             tr.buyrambytes({
                 payer: config.get("scp_auth_account"),
@@ -48,12 +57,6 @@ module.exports = {
             //     transfer: 0
             // })
         }, callback);
-        // var ret = eos.newaccount({
-        //     creator: config.get("scp_auth_account"),
-        //        name: scp_ac_name,
-        //       owner: scp_ac_pubkey, // pubkey of new eos account - todo: separate owner/active auths
-        //      active: scp_ac_pubkey 
-        // }, callback);
     },
 
     test1: function (req, res) {
