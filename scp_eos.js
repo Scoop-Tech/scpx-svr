@@ -5,7 +5,7 @@
 module.exports = {
     // new member account
     new_account: function (req, res) {
-        console.log(req.body)
+        if (!req.body) return res.sendStatus(400);
 
         let scp_ac_name = req.body.accountName;
         let publicKeys = req.body.publicKeys;
@@ -25,19 +25,8 @@ module.exports = {
         // var scp_ac_name = eos_lib.gen_account_name(); 
 
         // todo - check account/pubkey already exists (SCPX lookup?)
-        
-        // create
-        var callback = (err, data) => {
-            if (err) {
-                console.log("## new_account ERR: " + JSON.stringify(err, null, 2));
-                res.status(500).send({err: "undefined"});
-                return;
-            }
-            console.log("$$ new_account OK: " + JSON.stringify(data, null, 2));
-            res.status(201/*created*/).send({ res: "ok", txid: data.transaction_id, scp_ac_name: scp_ac_name }); 
-        };
 
-        var ret = eos.transaction(tr => {
+        eos.transaction(tr => {
             tr.newaccount({
                 creator: config.get("scp_auth_account"),
                 name: scp_ac_name,
@@ -56,7 +45,18 @@ module.exports = {
             //     stake_cpu_quantity: '10.0000 EOS',
             //     transfer: 0
             // })
-        }, callback);
+        }).then(data => {
+            console.log("$$ new_account OK: " + JSON.stringify(data, null, 2));
+            
+            res.status(201).send({ res: "ok", txid: data.transaction_id, scp_ac_name: scp_ac_name }); 
+        }).catch(err => {
+            console.log("## new_account ERR: " + JSON.stringify(err, null, 2));
+
+            Promise.resolve(err)
+                .then(JSON.parse)
+                .then(res.status(500).json(err))
+                .catch(res.status(500));
+        });
     },
 
     test1: function (req, res) {

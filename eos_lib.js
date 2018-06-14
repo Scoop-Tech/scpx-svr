@@ -5,10 +5,11 @@ module.exports = {
     init: function (req, res) {
         var config = require('./config');
         var Eos = require('eosjs');
-        var eos = Eos( {
-            keyProvider: config.get("scp_auth_privkey"),
+        var eos = Eos({
+            chainId: config.get("scp_chain_id"),
             httpEndpoint: config.get("scp_nodeos_url"),
             expireInSeconds: 3,
+            keyProvider: config.get("scp_auth_privkey"),
             broadcast: true,
             debug: false, // API and transactions
             sign: true
