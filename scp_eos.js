@@ -5,10 +5,10 @@
 module.exports = {
     // new member account
     new_account: function (req, res) {
-        console.log(req)
+        console.log(req.params)
 
-        let scp_ac_name = req.accountName;
-        let publicKeys = req.publicKeys;
+        let scp_ac_name = req.params.accountName;
+        let publicKeys = req.params.publicKeys;
 
         var eos_lib = require('./eos_lib'); var eos = eos_lib.init();
         var config = require('./config');
