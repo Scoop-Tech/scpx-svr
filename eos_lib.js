@@ -8,7 +8,7 @@ module.exports = {
         var eos = Eos({
             chainId: config.get("scp_chain_id"),
             httpEndpoint: config.get("scp_nodeos_url"),
-            expireInSeconds: 3,
+            expireInSeconds: 60,
             keyProvider: config.get("scp_auth_privkey"),
             broadcast: true,
             debug: false, // API and transactions
