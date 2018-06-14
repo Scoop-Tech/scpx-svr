@@ -5,16 +5,16 @@
 module.exports = {
     // new member account
     new_account: function (req, res) {
-        console.log(req.params)
+        console.log(req.body)
 
-        let scp_ac_name = req.params.accountName;
-        let publicKeys = req.params.publicKeys;
+        let scp_ac_name = req.body.accountName;
+        let publicKeys = req.body.publicKeys;
 
         var eos_lib = require('./eos_lib'); var eos = eos_lib.init();
         var config = require('./config');
 
         // validate pubkey
-        var scp_ac_pubkey = req.params.pubkey;
+        var scp_ac_pubkey = req.body.pubkey;
         var Eos_ecc = require('eosjs-ecc');
         if (!Eos_ecc.isValidPublic(publicKeys.owner) || !Eos_ecc.isValidPublic(publicKeys.active)) { 
             res.status(400/*badreq*/).send( { err: "bad pubkey" } ); 
