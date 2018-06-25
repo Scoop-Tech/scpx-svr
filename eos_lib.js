@@ -19,8 +19,8 @@ module.exports = {
 
     gen_account_name: function() {
         var possible = "abcdefghijklmnopqrstuvwxyz12345";
-        var text = "scp.";
-        for (var i = 0; i < 8; i++)
+        var text = "scp";
+        for (var i = 0; i < 9; i++)
             text += possible.charAt(Math.floor(Math.random() * possible.length));
         return text;
     }
