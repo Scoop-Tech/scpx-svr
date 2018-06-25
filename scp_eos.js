@@ -7,11 +7,13 @@ module.exports = {
     new_account: function (req, res) {
         if (!req.body) return res.sendStatus(400);
 
-        let scp_ac_name = req.body.accountName;
-        let publicKeys = req.body.publicKeys;
-
-        var eos_lib = require('./eos_lib'); var eos = eos_lib.init();
+        var eos_lib = require('./eos_lib'); 
+        var eos = eos_lib.init();
         var config = require('./config');
+
+        let scp_ac_name = eos_lib.gen_account_name(); 
+        let encryptedEmail = req.body.email;
+        let publicKeys = req.body.publicKeys;
 
         // validate pubkey
         var scp_ac_pubkey = req.body.pubkey;
