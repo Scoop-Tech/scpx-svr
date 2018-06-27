@@ -17,6 +17,8 @@ app.use(function(req, res, next) {
 var Promise = require('promise');
 var scp_eos = require('./scp_eos'); 
 
+var scp_eos_deploy = require('./scp_eos_deploy');
+
 app.get('/', function (req, res) { res.send('scp-svr: ok1'); });
 
 console.log('up');
@@ -25,6 +27,8 @@ console.log('up');
  * Main - todo: rate limiting
  */
 app.get('/test1/:p1', function (req, res) { scp_eos.test1(req, res); }); 
+
+app.get('/deploy', function (req, res) { scp_eos_deploy.deploy(req, res); }); 
 
 // Create account
 app.post('/api/account', function (req, res) { scp_eos.new_account(req, res); });
