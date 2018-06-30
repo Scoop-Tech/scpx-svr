@@ -13,11 +13,11 @@ module.exports = {
         // 
         // solution: deploy a different contract before deploy the update
 
-        // var wasm = fs.readFileSync('./contract/scp2.wasm')
-        // var abi = fs.readFileSync('./contract/scp2.abi')
+        // var wasm = fs.readFileSync('./contract/scp.wasm')
+        // var abi = fs.readFileSync('./contract/scp.abi')
 
-        // Publish contract to the blockchain
-        // eos.setcode('scoopowner', 2, 2, wasm)
+        // // Publish contract to the blockchain
+        // eos.setcode('scoopowner', 0, 0, wasm)
         //     .then(res => {
         //         console.log(res)
         //     })

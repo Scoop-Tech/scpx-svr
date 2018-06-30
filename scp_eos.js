@@ -49,6 +49,14 @@ module.exports = {
             // })
         }).then(data => {
             console.log("$$ new_account OK: " + JSON.stringify(data, null, 2));
+
+            eos.transaction(config.get("scp_auth_account"), contract => {
+                contract.uputx2(scp_ac_name, encryptedEmail, { authorization: [ config.get("scp_auth_account") + '@active' ] })
+
+                console.log("Encrypted email recorded.")
+            }).catch(e => {
+                console.log(e)
+            })
             
             res.status(201).send({ res: "ok", txid: data.transaction_id, scp_ac_name: scp_ac_name }); 
         }).catch(err => {
