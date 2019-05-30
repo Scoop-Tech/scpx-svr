@@ -110,7 +110,7 @@ app.post('/api/login_v2', (req, res) => { scp_eos.login_v2(req, res); });       
 app.post('/api/assets', (req, res) => { scp_eos.update_assets(req, res); });      // Update assets json
 app.post('/api/data', (req, res) => { scp_eos.update_data(req, res); });          // Update data json
 app.get('/api/ol', function (req, res) { res.status(200).send(                    // online poller / announcements
-    JSON.stringify({ annTitle: 'Server Maintenance', annSubtitle: 'ZCash, Bitcoin Cash, Dash and DigiByte' })
+    JSON.stringify({ annTitle: 'Server Maintenance', annSubtitle: 'Affected: ZCash, Bitcoin Cash, Dash and DigiByte' })
     //'🤖'
 ); });
 
