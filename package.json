@@ -1,7 +1,9 @@
 {
   "name": "scpx-svr",
   "version": "0.4.3",
-  "private": true,
+  "author": "Dominic Morris",
+  "license": "MS-RSL",
+  "private": false,
   "scripts": {
     "start": "node ./bin/www"
   },
