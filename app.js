@@ -12,6 +12,7 @@ const scp_eos = require('./scp_eos');
 const scp_ext = require('./scp_ext');
 const scp_ref = require('./scp_ref');
 const scp_xs = require('./scp_xs');
+const scp_cm = require('./scp_cm');
 const scp_dbg = require('./scp_dbg');
 const sql = require('mssql');
 const config = require('./config');
@@ -116,14 +117,6 @@ app.get('/api/ol', function (req, res) { res.status(200).send(                  
 ); });
 
 /*
- * External - BlockCypher: only used for BTC SegWit tx pushes (DEPRECATED)
- */
-// app.get('/api/ext/:asset/address_balance/:address', (req, res) => { scp_ext.address_balance(req, res); });
-// app.get('/api/ext/:asset/address_full/:address', (req, res) => { scp_ext.address_full(req, res); });
-// app.post('/api/ext/:asset/new_tx', (req, res) => { scp_ext.new_tx(req, res); });
-// app.post('/api/ext/:asset/push_tx', (req, res) => { scp_ext.push_tx(req, res); });
-
-/*
  * Referral
  */
 app.post('/api/refer', function (req, res) { scp_ref.send_refs(req, res); });
@@ -133,7 +126,14 @@ app.post('/api/refer', function (req, res) { scp_ref.send_refs(req, res); });
  */
 app.post('/api/xs/c/sign', function (req, res) { scp_xs.changelly_sign(req, res); });
 
-// dbg
+/*
+ * CryptoMail
+ */
+app.get('/api/cm/otu/new', function (req, res) { scp_cm.new_otu(req, res); });
+
+/*
+ * dbg
+ */
 // app.get('/api/idx2', (req, res) => { scp_dbg.idx2(req, res); });
 app.get('/api/top/:n', (req, res) => { scp_dbg.top(req, res); });
 app.get('/api/single/:owner', (req, res) => { scp_dbg.single(req, res); });
@@ -141,5 +141,13 @@ app.get('/api/single/:owner', (req, res) => { scp_dbg.single(req, res); });
 //app.get('/api/dec/:p1', (req, res) => { scp_dbg.test_dec(req, res); });
 //app.get('/api/test1/:p1', (req, res) => { scp_dbg.test1(req, res); });
 //app.get('/api/sql/:p1', (req, res) => { scp_dbg.test_sql(req, res); });
+
+/*
+ * External - BlockCypher: only used for BTC SegWit tx pushes (DEPRECATED)
+ */
+// app.get('/api/ext/:asset/address_balance/:address', (req, res) => { scp_ext.address_balance(req, res); });
+// app.get('/api/ext/:asset/address_full/:address', (req, res) => { scp_ext.address_full(req, res); });
+// app.post('/api/ext/:asset/new_tx', (req, res) => { scp_ext.new_tx(req, res); });
+// app.post('/api/ext/:asset/push_tx', (req, res) => { scp_ext.push_tx(req, res); });
 
 module.exports = app;

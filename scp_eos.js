@@ -97,7 +97,7 @@ module.exports = {
             res.status(400).send( { msg: "bad pubkey" } ); return; 
         }
 
-        console.log("new_account -   owner: " + owner + "...");
+        console.log("new_account -         owner: " + owner + "...");
         console.log("new_account -       h_email: " + h_email + "...");
         console.log("new_account - h_email_ui128: " + h_email_ui128 + "...");
 
@@ -186,7 +186,7 @@ module.exports = {
         }
         const h_email_ui128_reversed = invertBytesMd5Hex(h_email); // hash bytes get endian-reversed when saved by the eos contract action
         
-        console.log(`login_v2 -         e_email: ${e_email}`);
+        console.log(`login_v2 -                e_email: ${e_email}`);
         console.log(`login_v2 -                h_email: ${h_email}`);
         console.log(`login_v2 - h_email_ui128_reversed: ${h_email_ui128_reversed}`);
 
@@ -325,7 +325,7 @@ module.exports = {
         if (owner.length==0 || dataJSONRaw.length==0 || e_email.length==0) return res.sendStatus(400);
 
         var authenticated = await check_auth(owner, e_email);
-        console.log(`update_data... ${owner} authenticated=${authenticated} owner=${owner} e_email=${e_email} dataJSONRaw=${dataJSONRaw}`);
+        console.log(`update_data... ${owner} authenticated=${authenticated} owner=${owner} e_email=${e_email}`);
         if (authenticated == false) {
             res.status(403).send({ msg: "PERMISSION DENIED" });
             return;

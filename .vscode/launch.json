@@ -13,7 +13,7 @@
             },
             "name": "svr-dev",
             "cwd": "${workspaceFolder}/",
-            "program": "${workspaceFolder}/app.js",
+            "program": "${workspaceFolder}/bin/www",
             "args": [
                     ],
             "console": "externalTerminal",
