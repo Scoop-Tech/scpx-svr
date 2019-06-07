@@ -13,7 +13,7 @@ Cryptography for all three layers is done by [crypto-js](https://github.com/brix
 
 The [Core Wallet](https://github.com/Scoop-Tech/scpx-wallet) manages origination of Master Private Keys (MPKs), derivation and L1 encryption of resulting sub-asset private keys, and -- if you use the Web Wallet or the CLI ```wallet-server-load``` or ```wallet-server-save``` commands -- dispatch of L1-encrypted user and asset data to the API Server's [endpoints](#Scoop-API-Server).
 
-The [API Server](./README.md) provides authentication, L2 encryption of L1-encrypted data, and persistence of resulting (L1+L2) double-encrypted data to the [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos) ("**DSC**").
+The [API Server](https://github.com/Scoop-Tech/scpx-svr/) provides authentication, L2 encryption of L1-encrypted data, and persistence of resulting (L1+L2) double-encrypted data to the [Data Storage Contract](https://github.com/Scoop-Tech/scpx-eos) ("**DSC**").
 
 The [Web Wallet](https://scoop.tech) performs L0 encryption of data from its embedded Core Wallet, and persistence of the resulting (L1+L0) double-encrypted data in browser [Web Storage](https://developers.google.com/web/fundamentals/instant-and-offline/web-storage/) through [redux-persist](https://github.com/rt2zz/redux-persist). This store is ```SessionStorage```, except when running as a mobile homescreen Progressive Web App, when it is  ```LocalStorage```. All Web Storage is cleared manually of sensitive fields on session logout, and the default ```SessionStorage``` is also automatically cleared by the browser upon session termination.
 
@@ -69,7 +69,7 @@ Below is a summary of sensitive browser data fields and their usage:
 
 ## Scoop API Server
 
-The [API Server](./README.md) performs authorization on data modification and read requests, and L2 encryption and decryption of data being passed in and out of the DSC. This server-origin encryption and decryption is the secondary layer and supplements the primary L1 encryption performed in the browser or CLI by the Core Wallet.
+The [API Server](https://github.com/Scoop-Tech/scpx-svr/) performs authorization on data modification and read requests, and L2 encryption and decryption of data being passed in and out of the DSC. This server-origin encryption and decryption is the secondary layer and supplements the primary L1 encryption performed in the browser or CLI by the Core Wallet.
 
 ### Encrypting Storage Model
 
