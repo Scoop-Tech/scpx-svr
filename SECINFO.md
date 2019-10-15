@@ -17,9 +17,19 @@ The [API Server](https://github.com/Scoop-Tech/scpx-svr/) provides authenticatio
 
 The [Web Wallet](https://scoop.tech) performs L0 encryption of data from its embedded Core Wallet, and persistence of the resulting (L1+L0) double-encrypted data in browser [Web Storage](https://developers.google.com/web/fundamentals/instant-and-offline/web-storage/) through [redux-persist](https://github.com/rt2zz/redux-persist). This store is ```SessionStorage```, except when running as a mobile homescreen Progressive Web App, when it is  ```LocalStorage```. All Web Storage is cleared manually of sensitive fields on session logout, and the default ```SessionStorage``` is also automatically cleared by the browser upon session termination.
 
+Root Master Private Keys (MPKs) are derived using [eosjs-ecc](https://github.com/EOSIO/eosjs-ecc) Elliptic Curve Cryptography (ECC) functions, and use its default CPU entropy for private key generation.
+
+All web traffic runs exclusively over CloudFlare's [Strict SSL](https://blog.cloudflare.com/introducing-strict-ssl-protecting-against-a-man-in-the-middle-attack-on-origin-traffic/), i.e. front-end over TLS and back-end over TLS (validated) with validation against CloudFlare's defined and restricted list of trusted certificate authorities.
+
+One-time use local-scope object variables containing MPK or derived WIF data have their keys systematically deleted when falling out of scope.
+
 ## Scoop Web Wallet
 
-Below is a summary of sensitive browser data fields and their usage:
+The Web Wallet MS-RSL source is obfuscated with [UglifyJS Webpack Plugin](https://github.com/webpack-contrib/uglifyjs-webpack-plugin) with full compression and name-mangling options, and dropped console logging. This greatly increases the difficulty of client side code analysis or debugging.
+
+The Web Wallet runs on [DNSSEC-secured](https://dnssec-analyzer.verisignlabs.com/scoop.tech) Domain Name System Security Extensions, providing DNS clients with cryptographic authentication of DNS data, authenticated denial of existence and data integrity, providing mitigation against security threats involving forged or manipulated DNS data such as DNS cache poisoning attacks.
+
+Below is a summary of sensitive browser data fields, their usage and security mitigations:
 
 * ```mpk``` Master Private Key (MPK)
   * Source: user-supplied on session login, produced by [eosjs-keygen](https://www.npmjs.com/package/eosjs-keygen) on account creation
@@ -70,6 +80,8 @@ Below is a summary of sensitive browser data fields and their usage:
 ## Scoop API Server
 
 The [API Server](https://github.com/Scoop-Tech/scpx-svr/) performs authorization on data modification and read requests, and L2 encryption and decryption of data being passed in and out of the DSC. This server-origin encryption and decryption is the secondary layer and supplements the primary L1 encryption performed in the browser or CLI by the Core Wallet.
+
+The API Server specifies CORS allowed-origins for prevention of XSS attacks against the Web Wallet, and rate limiting on key APIs to prevent brute-force and DoS attacks.
 
 ### Encrypting Storage Model
 
