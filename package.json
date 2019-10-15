@@ -24,6 +24,7 @@
     "http-errors": "~1.6.2",
     "jayson": "^3.0.2",
     "jschardet": "^2.1.0",
+    "lodash": "^4.17.15",
     "lz-string": "^1.4.4",
     "morgan": "^1.9.1",
     "mssql": "^4.3.0",
