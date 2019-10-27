@@ -10,7 +10,7 @@ module.exports = {
             chainId: config.get("scp_chain_id"),
             httpEndpoint: config.get("scp_nodeos_url"),
             expireInSeconds: 60,
-            keyProvider: config.get("scp_auth_privkey"),
+            keyProvider: config.get("scp_auth_active_privkey"),
             broadcast: true,
             //debug: true,
             //verbose: true,
