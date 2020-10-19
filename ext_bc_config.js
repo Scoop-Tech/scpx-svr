@@ -1,8 +1,6 @@
 // Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
 /*var config = require('./config');
-
 const blockcypher_token = config.get("scp_blockcypher_apikey");
-
 module.exports = {
     base: 'https://api.blockcypher.com/v1/btc/main/',
     address_full: (asset, address) => {

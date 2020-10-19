@@ -38,7 +38,9 @@ RESTful node.js Express web server for the [Scoop Wallet](https://github.com/Sco
 
 ## Building from Source
 
+  * `nvm install v10.20.1`
   * PowerShell: `$env:DEV = 1` - required for CORS patching
+  * Linux: `export DEV=1`
   * `npm start` or `nodemon`
   * see .\bin\www.js for config - default port is 3030
 

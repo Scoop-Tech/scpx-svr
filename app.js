@@ -1,4 +1,4 @@
-// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019,20 Dominic Morris.
 'use strict';
 
 const express = require('express');
@@ -13,6 +13,7 @@ const scp_ext = require('./scp_ext');
 const scp_ref = require('./scp_ref');
 const scp_xs = require('./scp_xs');
 const scp_cm = require('./scp_cm');
+const scp_stm = require('./scp_stm');
 const scp_dbg = require('./scp_dbg');
 const sql = require('mssql');
 const config = require('./config');
@@ -27,14 +28,24 @@ console.log(info);
 console.log(`process.env.PORT: ${process.env.PORT}`);
 console.log(`process.env.DEV: ${process.env.DEV}`);
 
-// SQL connection
-global.sql_pool = new sql.ConnectionPool(config.sql_config());
-sql.on('error', err => {
-    console.warn(`### sql.on (global handler): ${err.message}`, err);
-});
-sql_pool.connect()
-    .then(() => { console.log(`SQL pool connected ok`); })
-    .catch((err => { console.error(`## failed to connect to SQL pool: ${err.message}`); }));
+// SQL connection (main - SCP DB)
+sql.on('error', err => { console.warn(`### sql.on (global handler): ${err.message}`, err); });
+global.scp_sql_pool = new sql.ConnectionPool(config.scp_sql_config());
+scp_sql_pool.connect()
+    .then(() => { console.log(`scp_sql_pool connected ok: `, global.scp_sql_pool.config.server); })
+    .catch((err => { console.error(`## failed to connect to scp_sql_pool: ${err.message}`); }));
+
+// SQL connections (StMaster - AC/SD DBs)
+global.stm_sql_pools = [];
+const stm_dbs = config.stm_sql_dbs();
+for (let stm_db of stm_dbs) {
+    //console.log(db.name);
+    const stm_sql_pool = new sql.ConnectionPool(stm_db.config);
+    stm_sql_pool.connect()
+        .then(() => { console.log(`stm_sql_pool connected ok: `, stm_db.config.server); })
+        .catch((err => { console.error(`## failed to connect to stm_sql_pool: ${err.message}`); }));
+    global.stm_sql_pools.push(stm_sql_pool);
+}
 
 // *** cors is set on the azure web service (host IIS instance) - works much more reliably ***
 // but needed for dev
@@ -73,6 +84,7 @@ app.use("/api/data", generous_limiter);
 app.use("/api/login_v2", generous_limiter); 
 app.use("/api/account", generous_limiter);
 app.use("/api/refer", generous_limiter);
+app.use("/api/stm", generous_limiter);
 
 const paranoid_limiter = rateLimit({
     windowMs: 10 * 1000, // 10 seconds
@@ -127,9 +139,14 @@ app.post('/api/refer', function (req, res) { scp_ref.send_refs(req, res); });
 app.post('/api/xs/c/sign', function (req, res) { scp_xs.changelly_sign(req, res); });
 
 /*
- * CryptoMail
+ * CryptoMail - WIP...
  */
 app.get('/api/cm/otu/new', function (req, res) { scp_cm.new_otu(req, res); });
+
+/*
+ * StMaster Integration
+ */
+app.get('/api/stm', function (req, res) { scp_stm.get_sec_tokens(req, res); });
 
 /*
  * dbg

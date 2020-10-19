@@ -1,5 +1,5 @@
 # Scoop Wallet Security
-Release Candidate 4
+Release Candidate 5
 
 ## Overview
 
