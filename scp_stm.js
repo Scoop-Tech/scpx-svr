@@ -26,18 +26,20 @@ module.exports = {
                 //console.dir(result);
                 //ropsten_CFT_Cs = ropsten_CFT_Cs.concat(result.recordset);
                 const CFT_C = result.recordset[0];
-                console.log('CFT_C', CFT_C);
+                //console.log('CFT_C', CFT_C);
 
                 // get controller's WL, sealed & collateral values
                 const cftc_results = await Promise.all([
                     web3_call('getContractSeal', [], CFT_C.network_id, CFT_C.addr, CFT_C.abi),
                     web3_call('getWhitelist', [], CFT_C.network_id, CFT_C.addr, CFT_C.abi),
                     web3_call('getCcyTypes', [], CFT_C.network_id, CFT_C.addr, CFT_C.abi),
+                    web3_call('version', [], CFT_C.network_id, CFT_C.addr, CFT_C.abi),
                 ]);
-                const [cftc_getContractSeal, cftc_WL, cftc_ccyTypes] = cftc_results;
+                const [cftc_getContractSeal, cftc_WL, cftc_ccyTypes, cftc_version] = cftc_results;
                 console.log('cftc_getContractSeal', cftc_getContractSeal);
                 console.log('cftc_WL.length', cftc_WL.length);
                 console.log('cftc_ccyTypes.length', cftc_ccyTypes.length);
+                console.log('cftc_version', cftc_version);
                 if (!cftc_getContractSeal) warn.push('Controller is not sealed');
                 if (cftc_WL.length == 0) warn.push('Controller has no whitelist defined');
 
@@ -52,45 +54,54 @@ module.exports = {
                         console.log('result2', result2);
                         const db_cft_base = result2.recordset[0];
 
-                        // read base info (note: uses CFT-C ABI for calls on base CFT-B's...)
+                        // read base info (note: uses CFT-B's ABI is slightly different from CFT-C's)
                         const cftb_results = await Promise.all([
                             web3_call('name', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi),
                             web3_call('symbol', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi),
                             web3_call('version', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi),
+                            web3_call('totalSupply', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi),
                             web3_call('unit', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi),
                             web3_call('getContractSeal', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi),
                             web3_call('getWhitelist', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi),
                             web3_call('getCashflowData', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi),
                         ]);
-                        // const base_name = await web3_call('name', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi);
-                        // const base_symbol = await web3_call('symbol', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi);
-                        // const base_version = await web3_call('version', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi);
-                        // const base_unit = await web3_call('unit', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi);
-                        // const base_getContractSeal = await web3_call('getContractSeal', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi);
-                        // const base_WL = await web3_call('getWhitelist', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi);
-                        // const base_getCashflowData  = await web3_call('getCashflowData', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi);
-                        const [base_name, base_symbol, base_version, base_unit, base_getContractSeal, base_WL, base_getCashflowData] = cftb_results;
-                        // TODO: .... max supply, batch[0] metadata inc. "issuer", cashflowArgs...
+                        var [base_name, base_symbol, base_version, base_totalSupply, base_unit, base_sealed, base_WL, base_cfd] = cftb_results;
+                        
+                        // read uni-batch, if minted
+                        var base_uniBatch, parsed_uniBatch;
+                        if (base_cfd.issuer != "0x0000000000000000000000000000000000000000") {
+                            base_uniBatch = await web3_call('getSecTokenBatch', [1], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi);
+                            console.log('base_uniBatch', base_uniBatch);
+                            parsed_uniBatch = parseWeb3Struct(base_uniBatch);
+                            parsed_uniBatch.origTokFee = parseWeb3Struct(base_uniBatch.origTokFee);
+                        }
 
-                        if (!base_getContractSeal) warn.push(`Base ${base.name} is not sealed`);
+                        if (!base_sealed) warn.push(`Base ${base.name} is not sealed`);
                         if (base_WL.length == 0) warn.push(`Base ${base.name} has no whitelist defined`);
                         if (base_WL.length != cftc_WL.length) warn.push(`Base ${base.name} / controller whitelist mismatch`);
-
 
                         console.log(`${base.name} base_name`, base_name);
                         console.log(`${base.name} base_symbol`, base_symbol);
                         console.log(`${base.name} base_version`, base_version);
                         console.log(`${base.name} base_unit`, base_unit);
-                        console.log(`${base.name} base_getContractSeal`, base_getContractSeal);
+                        console.log(`${base.name} base_getContractSeal`, base_sealed);
                         console.log(`${base.name} base_WL.length`, base_WL.length);
-                        console.log(`${base.name} base_getCashflowData`, base_getCashflowData);
-                        console.log(`${base.name} base_getCashflowData.args`, base_getCashflowData.args);
-                        const parsedCashflowData = parseWeb3Struct(base_getCashflowData);
-                        parsedCashflowData.args = parseWeb3Struct(base_getCashflowData.args);
-                        console.log('parsedCashflowData', parsedCashflowData);
+                        console.log(`${base.name} base_getCashflowData`, base_cfd);
+                        console.log(`${base.name} base_getCashflowData.args`, base_cfd.args);
+                        
+                        // parse from web3 return format to something more friendly
+                        const parsed_cfd = parseWeb3Struct(base_cfd);
+                        parsed_cfd.args = parseWeb3Struct(base_cfd.args);
+                        console.log('parsed_cfd', parsed_cfd);
+                        
+                        base_totalSupply = parseInt(Number(base_totalSupply['_hex']), 10);
+                        console.log('base_totalSupply', base_totalSupply);
 
                         resolve({ 
-                            base_name, base_symbol, base_version, base_unit, base_getContractSeal, wlCount: base_WL.length, base_getCashflowData: parsedCashflowData
+                            network_id: 3,
+                            //cftc_getContractSeal, cftc_WL, cftc_ccyTypes, cftc_version,
+                            base_name, base_symbol, base_totalSupply, base_version, base_unit, base_sealed, wl_length: base_WL.length, 
+                                cfd: parsed_cfd, uniBatch: parsed_uniBatch
                         });
                     }
                     catch(ex) {
@@ -102,7 +113,7 @@ module.exports = {
                 ret = ret.concat(results);
             }
 
-            res.status(200).send ({ res: "ok", count: ret.length, data: ret, }); 
+            res.status(200).send ({ res: "ok", warn, count: ret.length, data: ret, }); 
         }
         catch(ex) {
             res.status(500).send({ msg: ex.toString() });
@@ -117,7 +128,12 @@ function parseWeb3Struct(s) {
     for (const [key, value] of Object.entries(s)) {
         if (isNaN(key)) {
             console.log(`key=${key}, bignumber(value)=${(value instanceof BigNumber)},  value=`, value);
-            ret[key] = value.toString();
+            if (value.length > 0) // preserve arrays
+                ret[key] = value;
+            // else if (value['_hex'] !== undefined) // convert from BN representation, e.g. {_hex: "0x0f4240"} 
+            //     ret[key] = parseInt(Number(value['_hex']), 10);
+            else
+                ret[key] = value.toString();
         }
     }
     return ret;
