@@ -34,13 +34,14 @@ module.exports = {
                 const cftc_results = await Promise.all([
                     web3_call('getContractSeal', [], CFT_C.network_id, CFT_C.addr, CFT_C.abi),
                     web3_call('getWhitelist', [], CFT_C.network_id, CFT_C.addr, CFT_C.abi),
-                    web3_call('getCcyTypes', [], CFT_C.network_id, CFT_C.addr, CFT_C.abi),
+                    //web3_call('getCcyTypes', [], CFT_C.network_id, CFT_C.addr, CFT_C.abi),
                     web3_call('version', [], CFT_C.network_id, CFT_C.addr, CFT_C.abi),
                 ]);
-                const [cftc_sealed, cftc_WL, cftc_ccyTypes, cftc_version] = cftc_results;
+                const [cftc_sealed, cftc_WL, //cftc_ccyTypes,
+                        cftc_version] = cftc_results;
                 console.log('cftc_getContractSeal', cftc_sealed);
                 console.log('cftc_WL.length', cftc_WL.length);
-                console.log('cftc_ccyTypes.length', cftc_ccyTypes.length);
+                //console.log('cftc_ccyTypes.length', cftc_ccyTypes.length);
                 console.log('cftc_version', cftc_version);
                 if (!cftc_sealed) warn.push('Controller is not sealed');
                 if (cftc_WL.length == 0) warn.push('Controller has no whitelist defined');
@@ -106,7 +107,7 @@ module.exports = {
                                 cftc_version,
                                 cftc_sealed,
                                 cftc_wl_length: cftc_WL.length, 
-                                cftc_ccyTypes: parseWeb3Struct(cftc_ccyTypes), 
+                                //cftc_ccyTypes: (cftc_ccyTypes.ccyTypes),
                             },
                             base_addr: db_cft_base.addr,
                                 base_version,
