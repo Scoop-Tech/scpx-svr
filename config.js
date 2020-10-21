@@ -10,6 +10,8 @@ module.exports = {
         if (process.env[key] != null) 
            return process.env[key];
 
+        console.log(`Failed to find config key ${key} in process.env; looking for config file...`);
+
         var config_json = require('./config.json');
 
         if (config_json[key] != null)
