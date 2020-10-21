@@ -37,12 +37,12 @@ module.exports = {
                     web3_call('getCcyTypes', [], CFT_C.network_id, CFT_C.addr, CFT_C.abi),
                     web3_call('version', [], CFT_C.network_id, CFT_C.addr, CFT_C.abi),
                 ]);
-                const [cftc_getContractSeal, cftc_WL, cftc_ccyTypes, cftc_version] = cftc_results;
-                console.log('cftc_getContractSeal', cftc_getContractSeal);
+                const [cftc_sealed, cftc_WL, cftc_ccyTypes, cftc_version] = cftc_results;
+                console.log('cftc_getContractSeal', cftc_sealed);
                 console.log('cftc_WL.length', cftc_WL.length);
                 console.log('cftc_ccyTypes.length', cftc_ccyTypes.length);
                 console.log('cftc_version', cftc_version);
-                if (!cftc_getContractSeal) warn.push('Controller is not sealed');
+                if (!cftc_sealed) warn.push('Controller is not sealed');
                 if (cftc_WL.length == 0) warn.push('Controller has no whitelist defined');
 
                 // unpack CFT-C's base types
@@ -101,9 +101,23 @@ module.exports = {
 
                         resolve({ 
                             network_id: 3,
-                            //cftc_getContractSeal, cftc_WL, cftc_ccyTypes, cftc_version,
-                            base_name, base_symbol, base_totalSupply, base_version, base_unit, base_sealed, wl_length: base_WL.length, 
-                                cfd: parsed_cfd, uniBatch: parsed_uniBatch
+                            cftc: {
+                                cft_addr: CFT_C.addr,
+                                cftc_version,
+                                cftc_sealed,
+                                cftc_wl_length: cftc_WL.length, 
+                                cftc_ccyTypes, 
+                            },
+                            base_addr: db_cft_base.addr,
+                                base_version,
+                                base_sealed,
+                                base_wl_length: base_WL.length, 
+                                base_name,
+                                base_symbol,
+                                base_totalSupply,
+                                base_unit,
+                                base_cfd: parsed_cfd,
+                                base_uniBatch: parsed_uniBatch,
                         });
                     }
                     catch(ex) {
