@@ -19,9 +19,11 @@ module.exports = {
             // read last deployed CFT-C from n AC/SD DBs
             const sql = require('mssql');
             var ret = [];
-            for (let i=0 ; i < global.stm_sql_pools.length ; i++) {
+            //for (let i=0 ; i < global.stm_sql_pools.length ; i++) {
                 // get last deployed controller, on Ropsten
-                const stm_pool = global.stm_sql_pools[i];
+                //const stm_pool = global.stm_sql_pools[i];
+                const stm_pool = global.stm_sql_pool;
+
                 const result = await stm_pool.request().query(`select top 1 * from [contract] where [network_id] = 3 and [contract_type] = 'CASHFLOW_CONTROLLER' order by [id] desc`)
                 //console.dir(result);
                 //ropsten_CFT_Cs = ropsten_CFT_Cs.concat(result.recordset);
@@ -111,7 +113,7 @@ module.exports = {
                 const results = await Promise.all(ops);
                 console.log(results);
                 ret = ret.concat(results);
-            }
+            //}
 
             res.status(200).send ({ res: "ok", warn, count: ret.length, data: ret, }); 
         }

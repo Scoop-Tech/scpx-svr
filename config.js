@@ -42,23 +42,40 @@ module.exports = {
         }        
     },
 
-    stm_sql_dbs: function () { 
-        const dbs = this.get('stm_dbs');
-        return dbs.map(p => { return {
-            name: p.stm_db_name,
+    stm_sql_db: function () { 
+        return {
+            name: this.get('stm_db_name'),
             config: {
-                user:     p.stm_sql_user,
-                password: p.stm_sql_password,
-                server:   p.stm_sql_server,
-                database: p.stm_sql_database,
-                port:     p.stm_sql_port,
+                user:     this.get('stm_sql_user'),
+                password: this.get('stm_sql_password'),
+                server:   this.get('stm_sql_server'),
+                database: this.get('stm_sql_database'),
+                port:     this.get('stm_sql_port'),
     
                 connectionTimeout: 3000,
                 requestTimeout:    3000,   
                 pool:    { max: 10, min: 0, idleTimeoutMillis: 30000, },
                 options: { encrypt: true }
             }
-        }});
+        };
     },
+    // stm_sql_dbs: function () { 
+    //     const dbs = this.get('stm_dbs');
+    //     return dbs.map(p => { return {
+    //         name: p.stm_db_name,
+    //         config: {
+    //             user:     p.stm_sql_user,
+    //             password: p.stm_sql_password,
+    //             server:   p.stm_sql_server,
+    //             database: p.stm_sql_database,
+    //             port:     p.stm_sql_port,
+    
+    //             connectionTimeout: 3000,
+    //             requestTimeout:    3000,   
+    //             pool:    { max: 10, min: 0, idleTimeoutMillis: 30000, },
+    //             options: { encrypt: true }
+    //         }
+    //     }});
+    // },
 
 };

@@ -36,16 +36,18 @@ scp_sql_pool.connect()
     .catch((err => { console.error(`## failed to connect to scp_sql_pool: ${err.message}`); }));
 
 // SQL connections (StMaster - AC/SD DBs)
-global.stm_sql_pools = [];
-const stm_dbs = config.stm_sql_dbs();
-for (let stm_db of stm_dbs) {
+//global.stm_sql_pools = [];
+const stm_db = config.stm_sql_db();
+//const stm_dbs = config.stm_sql_dbs();
+//for (let stm_db of stm_dbs) {
     //console.log(db.name);
     const stm_sql_pool = new sql.ConnectionPool(stm_db.config);
     stm_sql_pool.connect()
         .then(() => { console.log(`stm_sql_pool connected ok: `, stm_db.config.server); })
         .catch((err => { console.error(`## failed to connect to stm_sql_pool: ${err.message}`); }));
-    global.stm_sql_pools.push(stm_sql_pool);
-}
+    //global.stm_sql_pools.push(stm_sql_pool);
+    global.stm_sql_pool = stm_sql_pool;
+//}
 
 // *** cors is set on the azure web service (host IIS instance) - works much more reliably ***
 // but needed for dev
