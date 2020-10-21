@@ -1,4 +1,4 @@
-// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019 Dominic Morris.
+// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019,20 Dominic Morris.
 /*var config = require('./config');
 const blockcypher_token = config.get("scp_blockcypher_apikey");
 module.exports = {
