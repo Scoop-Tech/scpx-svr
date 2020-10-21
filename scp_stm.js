@@ -106,7 +106,7 @@ module.exports = {
                                 cftc_version,
                                 cftc_sealed,
                                 cftc_wl_length: cftc_WL.length, 
-                                cftc_ccyTypes, 
+                                cftc_ccyTypes: parseWeb3Struct(cftc_ccyTypes), 
                             },
                             base_addr: db_cft_base.addr,
                                 base_version,
