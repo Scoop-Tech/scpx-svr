@@ -18,7 +18,7 @@ module.exports = {
 
             // read last deployed CFT-C from n AC/SD DBs
             const sql = require('mssql');
-            var ret = [];
+            var base_types = [];
             //for (let i=0 ; i < global.stm_sql_pools.length ; i++) {
                 // get last deployed controller, on Ropsten
                 //const stm_pool = global.stm_sql_pools[i];
@@ -101,24 +101,25 @@ module.exports = {
                         console.log('base_totalSupply', base_totalSupply);
 
                         resolve({ 
-                            network_id: 3,
-                            cftc: {
-                                cft_addr: CFT_C.addr,
-                                cftc_version,
-                                cftc_sealed,
-                                cftc_wl_length: cftc_WL.length, 
-                                //cftc_ccyTypes: (cftc_ccyTypes.ccyTypes),
-                            },
+                            //network_id: 3,
+                            //cftc: {
+                            //     cft_addr: CFT_C.addr,
+                            //     cftc_version,
+                            //     cftc_sealed,
+                            //     cftc_wl_length: cftc_WL.length, 
+                            //     //cftc_ccyTypes: (cftc_ccyTypes.ccyTypes),
+                            //},
                             base_addr: db_cft_base.addr,
-                                base_version,
-                                base_sealed,
-                                base_wl_length: base_WL.length, 
-                                base_name,
-                                base_symbol,
-                                base_totalSupply,
-                                base_unit,
-                                base_cfd: parsed_cfd,
-                                base_uniBatch: parsed_uniBatch,
+                            base_url: `${config.get('stm_web_base')}${base_symbol}`,
+                            base_version,
+                            base_sealed,
+                            base_wl_length: base_WL.length, 
+                            base_name,
+                            base_symbol,
+                            base_totalSupply,
+                            base_unit,
+                            base_cfd: parsed_cfd,
+                            base_uniBatch: parsed_uniBatch,
                         });
                     }
                     catch(ex) {
@@ -127,10 +128,20 @@ module.exports = {
                 }));
                 const results = await Promise.all(ops);
                 console.log(results);
-                ret = ret.concat(results);
+                base_types = base_types.concat(results);
             //}
 
-            res.status(200).send ({ res: "ok", warn, count: ret.length, data: ret, }); 
+            res.status(200).send ({ res: "ok", warn, count: base_types.length, data: { 
+                network_id: 3,
+                cftc: {
+                    cft_addr: CFT_C.addr,
+                    cftc_version,
+                    cftc_sealed,
+                    cftc_wl_length: cftc_WL.length, 
+                    //cftc_ccyTypes: (cftc_ccyTypes.ccyTypes),
+                },
+                base_types, 
+            }}); 
         }
         catch(ex) {
             res.status(500).send({ msg: ex.toString() });
