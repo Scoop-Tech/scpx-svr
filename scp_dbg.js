@@ -106,7 +106,7 @@ module.exports = {
         const sql = require('mssql');
         var p1 = req.params.p1;
 
-        sql_pool.request().input('a', sql.NVarChar, `%${p1}%`)
+        scp_sql_pool.request().input('a', sql.NVarChar, `%${p1}%`)
         .query(`select * from _scpx_ref where referer_id like @a`)
         .then((result) => {
             console.dir(result);

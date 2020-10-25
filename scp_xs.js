@@ -38,7 +38,7 @@ module.exports = {
             const address = p.address
             const amount = p.amount
             const rateId = p.rateId
-            sql_pool.request()
+            scp_sql_pool.request()
             .input('from', sql.NVarChar, `${from}`)
             .input('to', sql.NVarChar, `${to}`)
             .input('address', sql.NVarChar, `${address}`)

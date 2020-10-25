@@ -79,7 +79,7 @@ ${config.WEBSITE_DOMAIN}`
             var sendResult = sendgrid.send(msg).then((r) => { });// todo - check sent ok
 
             // save
-            sql_pool.request()
+            scp_sql_pool.request()
             .input('ref_id', sql.NVarChar, `${googEmail}`)
             .input('ref_name', sql.NVarChar, `${googDisplayName}`)
             .input('ref_target', sql.NVarChar, `${email}`)
@@ -108,7 +108,7 @@ Scoop makes digital payments instant, secure and easy.`
                 ); // todo - check sent ok
             
             // save
-            sql_pool.request()
+            scp_sql_pool.request()
                 .input('ref_id', sql.NVarChar, `${googEmail}`)
                 .input('ref_name', sql.NVarChar, `${googDisplayName}`)
                 .input('ref_target', sql.NVarChar, `${phone}`)
