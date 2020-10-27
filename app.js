@@ -86,7 +86,7 @@ app.use("/api/data", generous_limiter);
 app.use("/api/login_v2", generous_limiter); 
 app.use("/api/account", generous_limiter);
 app.use("/api/refer", generous_limiter);
-app.use("/api/stm", generous_limiter);
+//app.use("/api/stm", generous_limiter); // no limit on this endpoint - it's called in parallel by wallet worker threads (see: action/s/wallet.js:newWalletAddressFromPrivKey())
 
 const paranoid_limiter = rateLimit({
     windowMs: 10 * 1000, // 10 seconds

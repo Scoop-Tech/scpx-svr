@@ -77,6 +77,13 @@ module.exports = {
                             console.log('base_uniBatch', base_uniBatch);
                             parsed_uniBatch = parseWeb3Struct(base_uniBatch);
                             parsed_uniBatch.origTokFee = parseWeb3Struct(base_uniBatch.origTokFee);
+                            
+                            parsed_uniBatch.meta = {};
+                            for (let i=0 ; i < parsed_uniBatch.metaKeys.length; i++) {
+                                parsed_uniBatch.meta[parsed_uniBatch.metaKeys[i]] = parsed_uniBatch.metaValues[i];
+                            }
+                            delete parsed_uniBatch.metaKeys;
+                            delete parsed_uniBatch.metaValues;
                         }
 
                         if (!base_sealed) warn.push(`Base ${base.name} is not sealed`);
@@ -101,14 +108,6 @@ module.exports = {
                         console.log('base_totalSupply', base_totalSupply);
 
                         resolve({ 
-                            //network_id: 3,
-                            //cftc: {
-                            //     cft_addr: CFT_C.addr,
-                            //     cftc_version,
-                            //     cftc_sealed,
-                            //     cftc_wl_length: cftc_WL.length, 
-                            //     //cftc_ccyTypes: (cftc_ccyTypes.ccyTypes),
-                            //},
                             base_addr: db_cft_base.addr,
                             base_url: `${config.get('stm_web_base')}${base_symbol}`,
                             base_version,
