@@ -68,7 +68,8 @@ module.exports = {
                             web3_call('getWhitelist', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi),
                             web3_call('getCashflowData', [], CFT_C.network_id, base.cashflowBaseAddr, db_cft_base.abi),
                         ]);
-                        var [base_name, base_symbol, base_version, base_totalSupply, base_unit, base_sealed, base_WL, base_cfd] = cftb_results;
+                        var [base_contract_name, base_symbol, base_version, base_totalSupply, base_unit, base_sealed, base_WL, base_cfd] = cftb_results;
+                        const base_type_name = base.name;
                         
                         // read uni-batch, if minted
                         var base_uniBatch, parsed_uniBatch;
@@ -90,7 +91,8 @@ module.exports = {
                         if (base_WL.length == 0) warn.push(`Base ${base.name} has no whitelist defined`);
                         if (base_WL.length != cftc_WL.length) warn.push(`Base ${base.name} / controller whitelist mismatch`);
 
-                        console.log(`${base.name} base_name`, base_name);
+                        console.log(`${base.name} base_type_name`, base_type_name);
+                        console.log(`${base.name} base_contract_name`, base_contract_name);
                         console.log(`${base.name} base_symbol`, base_symbol);
                         console.log(`${base.name} base_version`, base_version);
                         console.log(`${base.name} base_unit`, base_unit);
@@ -108,12 +110,13 @@ module.exports = {
                         console.log('base_totalSupply', base_totalSupply);
 
                         resolve({ 
+                            base_type_name,
+                            base_contract_name,
                             base_addr: db_cft_base.addr,
                             base_url: `${config.get('stm_web_base')}${base_symbol}`,
                             base_version,
                             base_sealed,
                             base_wl_length: base_WL.length, 
-                            base_name,
                             base_symbol,
                             base_totalSupply,
                             base_unit,
