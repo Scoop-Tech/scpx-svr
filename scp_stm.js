@@ -23,8 +23,9 @@ module.exports = {
                 // get last deployed controller, on Ropsten
                 //const stm_pool = global.stm_sql_pools[i];
                 const stm_pool = global.stm_sql_pool;
+                const NETWORK_ID = 97; // BSC testnet
 
-                const result = await stm_pool.request().query(`select top 1 * from [contract] where [network_id] = 3 and [contract_type] = 'CASHFLOW_CONTROLLER' order by [id] desc`)
+                const result = await stm_pool.request().query(`select top 1 * from [contract] where [network_id] = ${NETWORK_ID} and [contract_type] = 'CASHFLOW_CONTROLLER' order by [id] desc`)
                 //console.dir(result);
                 //ropsten_CFT_Cs = ropsten_CFT_Cs.concat(result.recordset);
                 const CFT_C = result.recordset[0];
@@ -134,7 +135,7 @@ module.exports = {
             //}
 
             res.status(200).send ({ res: "ok", warn, count: base_types.length, data: { 
-                network_id: 3,
+                network_id: NETWORK_ID,
                 cftc: {
                     cft_addr: CFT_C.addr,
                     cftc_version,
@@ -171,7 +172,8 @@ function parseWeb3Struct(s) {
 
 function getWeb3(network_id) {
     const context =
-        network_id == 3 ? { web3: new Web3(config.get('geth_http_ropsten')), ethereumTxChain: { chain: 'ropsten', hardfork: 'petersburg' } }
+          network_id == 3  ? { web3: new Web3(config.get('geth_http_ropsten')), ethereumTxChain: { chain: 'ropsten', hardfork: 'petersburg' } }
+        : network_id == 97 ? { web3: new Web3(config.get('geth_http_bsc_testnet')), ethereumTxChain: { chain: 'ropsten', hardfork: 'petersburg' } }
         : undefined;
     if (!context) throw('Bad network_id');
     return context;
