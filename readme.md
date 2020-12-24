@@ -1,5 +1,5 @@
 # Scoop API Server
-Release Candidate 5
+v0.9
 
 RESTful node.js Express web server for the [Scoop Wallet](https://github.com/Scoop-Tech/scpx-wallet).
 

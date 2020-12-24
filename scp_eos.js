@@ -89,9 +89,9 @@ module.exports = {
         if (!h_email || h_email === undefined || h_email.length !== 32) { // validate email hash -- expecting MD5 32 hex chars (128 bits)
             res.status(400).send( { msg: "bad h_email" } ); return;
         }
-        const h_email_ui128 = new BigNumber(h_email, 16).toFixed()
+        const h_email_ui128 = new BigNumber(h_email, 16).toFixed();
 
-        var scp_ac_pubkey = req.body.pubkey;
+        //var scp_ac_pubkey = req.body.pubkey;
         var Eos_ecc = require('eosjs-ecc');
         if (!Eos_ecc.isValidPublic(publicKeys.owner) || !Eos_ecc.isValidPublic(publicKeys.active)) {  // validate pubkey
             res.status(400).send( { msg: "bad pubkey" } ); return; 
@@ -141,7 +141,7 @@ module.exports = {
             })
             .catch(err2 => {
                 console.log(err2);
-                isCatch = true
+                isCatch = true;
                 try {
                     console.error("## new_account ERR 2 (" + JSON.stringify(err2) + ") (exec tx) [catch object doesn't propagate reliably?]");
                     const json_err = JSON.parse(err2)
@@ -222,9 +222,9 @@ module.exports = {
                 const dec_e_email = enc.aesDecryption(CryptoJS.MD5(user.owner).toString(), config.get("api_enc_key_1"), user.e_email);
                 const dec_assets_json = enc.aesDecryption(CryptoJS.MD5(e_email + user.owner).toString(), config.get("api_enc_key_2"), user.assets_json);
                 const dec_data_json = enc.aesDecryption(CryptoJS.MD5(e_email).toString(), config.get("api_enc_key_3"), user.data_json);
-                user.e_email = dec_e_email
-                user.assets_json = dec_assets_json
-                user.data_json = dec_data_json
+                user.e_email = dec_e_email;
+                user.assets_json = dec_assets_json;
+                user.data_json = dec_data_json;
                 
                 // authentication
                 if (user.e_email !== e_email) { // email mismatch?
