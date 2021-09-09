@@ -1,4 +1,4 @@
-// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 //
 // scp_dbg - dbg/test
@@ -119,7 +119,7 @@ module.exports = {
     },
 
     // test_enc: async function (req, res) {
-    //     const enc = require('./scp_enc.js');
+    //     const enc = require('./scp_util.js');
     //     var config = require('./config');
     //     var p1 = req.params.p1;
     //     const salt128 = '1';
@@ -127,7 +127,7 @@ module.exports = {
     //     res.status(200).send({ res: "ok", enc: data }); 
     // },
     // test_dec: async function (req, res) {
-    //     const enc = require('./scp_enc.js');
+    //     const enc = require('./scp_util.js');
     //     var config = require('./config');
     //     var p1 = req.params.p1;
     //     const salt128 = '1';

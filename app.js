@@ -1,4 +1,4 @@
-// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 'use strict';
 
 const express = require('express');
@@ -12,8 +12,9 @@ const scp_eos = require('./scp_eos');
 const scp_ext = require('./scp_ext');
 const scp_ref = require('./scp_ref');
 const scp_xs = require('./scp_xs');
-const scp_cm = require('./scp_cm');
+//const scp_cm = require('./scp_cm');
 const scp_stm = require('./scp_stm');
+const scp_faucet = require('./scp_faucet');
 const scp_dbg = require('./scp_dbg');
 const sql = require('mssql');
 const config = require('./config');
@@ -37,17 +38,12 @@ scp_sql_pool.connect()
 
 // SQL connections (StMaster - AC/SD DBs)
 //global.stm_sql_pools = [];
-const stm_db = config.stm_sql_db();
-//const stm_dbs = config.stm_sql_dbs();
-//for (let stm_db of stm_dbs) {
-    //console.log(db.name);
-    const stm_sql_pool = new sql.ConnectionPool(stm_db.config);
-    stm_sql_pool.connect()
-        .then(() => { console.log(`stm_sql_pool connected ok: `, stm_db.config.server); })
-        .catch((err => { console.error(`## failed to connect to stm_sql_pool: ${err.message}`); }));
-    //global.stm_sql_pools.push(stm_sql_pool);
-    global.stm_sql_pool = stm_sql_pool;
-//}
+// const stm_db = config.stm_sql_db();
+// const stm_sql_pool = new sql.ConnectionPool(stm_db.config);
+// stm_sql_pool.connect()
+//     .then(() => { console.log(`stm_sql_pool connected ok: `, stm_db.config.server); })
+//     .catch((err => { console.error(`## failed to connect to stm_sql_pool: ${err.message}`); }));
+// global.stm_sql_pool = stm_sql_pool;
 
 // *** cors is set on the azure web service (host IIS instance) - works much more reliably ***
 // but needed for dev
@@ -74,40 +70,42 @@ if (process.env.DEV === "1") {
     app.use("/api", cors(corsOptions));
 }
 
-// hard rate limits - block
-const generous_limiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 minute
-    max: 15, // limit per IP per windowMs - clears after windowMs
-    handler: (req, res, /*next*/) => { console.log(`### generous_limiter - handler: ${req.url}`); /*set_cors(req, res);*/ res.status(429).send("Scoop Limit #1a"); },
-    onLimitReached: (req, res, options) => { console.log(`### generous_limiter - onLimitReached: ${req.url}`); }
-});
-app.use("/api/assets", generous_limiter);
-app.use("/api/data", generous_limiter);
-app.use("/api/login_v2", generous_limiter); 
-app.use("/api/account", generous_limiter);
-app.use("/api/refer", generous_limiter);
-//app.use("/api/stm", generous_limiter); // no limit on this endpoint - it's called in parallel by wallet worker threads (see: action/s/wallet.js:newWalletAddressFromPrivKey())
+// hard rate limits - these block requests after limits are breached
+    const generous_limiter = rateLimit({
+        windowMs: 1 * 60 * 1000, // 15 per minute max == every 4 seconds
+        max: 15,
+        handler: (req, res, /*next*/) => { console.log(`### generous_limiter - handler: ${req.url}`); /*set_cors(req, res);*/ res.status(429).send("Scoop Limit #1a"); },
+        onLimitReached: (req, res, options) => { console.log(`### generous_limiter - onLimitReached: ${req.url}`); }
+    });
+    app.use("/api/assets", generous_limiter);
+    app.use("/api/data", generous_limiter);
+    app.use("/api/login_v2", generous_limiter); 
+    app.use("/api/account", generous_limiter);
+    app.use("/api/refer", generous_limiter);
+    app.use("/api/faucet", generous_limiter);
+    //app.use("/api/stm", generous_limiter); // no limit on this endpoint - it's called in parallel by wallet worker threads (see: action/s/wallet.js:newWalletAddressFromPrivKey())
 
-const paranoid_limiter = rateLimit({
-    windowMs: 10 * 1000, // 10 seconds
-    max: 4,
-    handler: (req, res, /*next*/) => { console.log(`### paranoid_limiter - handler: ${req.url}`); /*set_cors(req, res);*/ res.status(429).send("Scoop Limit #1b"); },
-    onLimitReached: (req, res, options) => { console.log(`### paranoid_limiter - onLimitReached: ${req.url}`); }
-});
-app.use("/api/login_v2", paranoid_limiter); 
-app.use("/api/account", paranoid_limiter);
+    const paranoid_limiter = rateLimit({
+        windowMs: 1 * 1000, // 2 per second max.
+        max: 2,
+        handler: (req, res, /*next*/) => { console.log(`### paranoid_limiter - handler: ${req.url}`); /*set_cors(req, res);*/ res.status(429).send("Scoop Limit #1b"); },
+        onLimitReached: (req, res, options) => { console.log(`### paranoid_limiter - onLimitReached: ${req.url}`); }
+    });
+    app.use("/api/login_v2", paranoid_limiter); 
+    app.use("/api/account", paranoid_limiter);
+    app.use("/api/faucet", paranoid_limiter);
 
-// soft limit - slow down
-const speed_limiter = slowDown({
-    windowMs: 10 * 1000, // 10 secs
-    delayAfter: 10,
-    delayMs: 100, // begin adding 100ms of delay per request above delayAfter - clears after windowMs
-    handler: (req, res, /*next*/) => { console.log(`### slowDown - handler: ${req.url}`); /*set_cors(req, res);*/ res.status(429).send("Scoop Limit #2"); },
-    onLimitReached: (req, res, options) => { console.log(`### slowDown - onLimitReached: ${req.url}`); }
-});
-app.use("/api/login_v2", speed_limiter);
-app.use("/api/account", speed_limiter);
-app.use("/api/refer", speed_limiter);
+// soft rate limiter - this slows down requests are limits are breached
+    const speed_limiter = slowDown({
+        windowMs: 10 * 1000, // 10 seconds
+        delayAfter: 10,      // allow 10 requests per 10 seconds, then...
+        delayMs: 100,        // begin adding 100ms of delay per request above delayAfter # requests - clears after windowMs
+        handler: (req, res, /*next*/) => { console.log(`### slowDown - handler: ${req.url}`); /*set_cors(req, res);*/ res.status(429).send("Scoop Limit #2"); },
+        onLimitReached: (req, res, options) => { console.log(`### slowDown - onLimitReached: ${req.url}`); }
+    });
+    app.use("/api/login_v2", speed_limiter);
+    app.use("/api/account", speed_limiter);
+    app.use("/api/refer", speed_limiter);
 
 // misc
 app.use(bodyParser.urlencoded({ limit: '2mb', extended: false }));
@@ -141,14 +139,19 @@ app.post('/api/refer', function (req, res) { scp_ref.send_refs(req, res); });
 app.post('/api/xs/c/sign', function (req, res) { scp_xs.changelly_sign(req, res); });
 
 /*
- * CryptoMail - WIP...
+ * CryptoMail
  */
-app.get('/api/cm/otu/new', function (req, res) { scp_cm.new_otu(req, res); });
+//app.get('/api/cm/otu/new', function (req, res) { scp_cm.new_otu(req, res); });
 
 /*
  * StMaster Integration
  */
-app.get('/api/stm', function (req, res) { scp_stm.get_sec_tokens(req, res); });
+//app.get('/api/stm', function (req, res) { scp_stm.get_sec_tokens(req, res); });
+
+/*
+ * Faucet
+ */
+app.post('/api/faucet', function (req, res) { scp_faucet.faucet_drip(req, res); });
 
 /*
  * dbg

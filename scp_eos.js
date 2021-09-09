@@ -1,4 +1,4 @@
-// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 //
 // scp_eos - scoop eos sidechain 
@@ -13,52 +13,7 @@ const LZString = require('lz-string');
 
 const eos_lib = require('./eos_lib'); 
 const config = require('./config');
-const enc = require('./scp_enc.js');
-
-// * internal authentication *
-// checks that the supplied account matches supplied encrypted email 
-async function check_auth(owner, e_email) {
-    var eos = eos_lib.init();
-    const primaryKey = new BigNumber(eos.modules.format.encodeName(owner, false));
-    console.log(`check_auth... ${owner} ${e_email}`);
-    try {
-        var result = await eos.getTableRows({ // retrieve by supplied eos account name (primary key)
-            code: config.get("scp_auth_account"),
-            json: true,
-            scope: config.get("scp_auth_account"),
-            table: config.get("scp_table"),
-            lower_bound: primaryKey.toString(),
-            upper_bound: primaryKey.plus(1).toString(),
-            limit: 1
-        });
-        if (!result || !result.rows || result.rows.length != 1) {
-            console.log(`check_auth - unexpected error 1 on lookup for ${owner}}`);
-            return false;
-        }
-        const user = result.rows[0];
-        if (user != null && user != undefined && user.owner === owner) {
-
-            const enc_e_email = enc.aesEncryption(CryptoJS.MD5(owner).toString(), config.get("api_enc_key_1"), e_email);
-
-            if (user.e_email !== enc_e_email) { // encrypted email mismatch
-                console.log(`check_auth - encrypted email mismatch for ${owner}}: (${user.e_email} row) vs (${e_email} supplied, ${enc_e_email} derived)`);
-                return false;
-            }
-            else { // ok
-                //console.log(`check_auth - checked OK for ${owner} - supplied: ${e_email}`);
-                return true;
-            }
-        }
-        else {
-            console.log(`check_auth - unexpected error 2 on lookup for ${owner}}`);
-            return false;
-        }
-    }
-    catch (err) {
-         console.log(`check_auth - lookup failed for ${owner}`, err);
-         return false;
-    }
-};
+const utils = require('./scp_util.js');
 
 // for getTableRows by secondary uint128 index
 // e.g. 4655be51828445ffd3681a10ab6c6f81 -> 816f6cab101a68d3ff45848251be5546
@@ -93,13 +48,13 @@ module.exports = {
 
         //var scp_ac_pubkey = req.body.pubkey;
         var Eos_ecc = require('eosjs-ecc');
-        if (!Eos_ecc.isValidPublic(publicKeys.owner) || !Eos_ecc.isValidPublic(publicKeys.active)) {  // validate pubkey
+        if (!Eos_ecc.isValidPublic(publicKeys.owner) || !Eos_ecc.isValidPublic(publicKeys.active)) { // validate pubkey
             res.status(400).send( { msg: "bad pubkey" } ); return; 
         }
 
-        console.log("new_account -         owner: " + owner + "...");
-        console.log("new_account -       h_email: " + h_email + "...");
-        console.log("new_account - h_email_ui128: " + h_email_ui128 + "...");
+        //console.log("new_account -         owner: " + owner + "...");
+        //console.log("new_account -       h_email: " + h_email + "...");
+        //console.log("new_account - h_email_ui128: " + h_email_ui128 + "...");
 
         eos.transaction(tr => {
             tr.newaccount({
@@ -125,30 +80,30 @@ module.exports = {
             var isCatch = false
             var body = {}
 
-            console.log('$$ new_account - newaccount/buyram/delegatebw - TX DONE, txid=', tr_createAccount_Data.transaction_id);
+            //console.log('$$ new_account - newaccount/buyram/delegatebw - TX DONE, txid=', tr_createAccount_Data.transaction_id);
 
             eos.transaction(config.get("scp_auth_account"), contract => {
 
                 contract.newuser(owner,
                     //e_email, //** ENC
-                        enc.aesEncryption(CryptoJS.MD5(owner).toString(), config.get("api_enc_key_1"), e_email),
+                        utils.aesEncryption(CryptoJS.MD5(owner).toString(), config.get("api_enc_key_1"), e_email),
                     h_email_ui128,
                     { authorization: [ config.get("scp_auth_account") + '@active' ] })
             })
             .then(tr_newUser => {
-                console.log("$$ new_account - newuser - TX DONE, txid=", tr_newUser.transaction_id);
+                console.log(`$$ new_account: owner=${owner} e_email=${e_email} - TX DONE, txid=`, tr_newUser.transaction_id);
                 body = { res: "ok", txid: tr_newUser.transaction_id, owner };
             })
             .catch(err2 => {
                 console.log(err2);
                 isCatch = true;
                 try {
-                    console.error("## new_account ERR 2 (" + JSON.stringify(err2) + ") (exec tx) [catch object doesn't propagate reliably?]");
+                    console.error("## new_account: ERR 2 (" + JSON.stringify(err2) + ") (exec tx) [catch object doesn't propagate reliably?]");
                     const json_err = JSON.parse(err2)
                     res.statusMessage = "ERROR #2.CA " + json_err.error.details[0].message;
                     body = { msg: "ERROR #2.CA " + json_err.error.details[0].message }
                 } catch(err2b) {
-                    console.error("## new_account ERR 2b: " + err2);
+                    console.error("## new_account: ERR 2b - " + err2);
                     res.statusMessage = "ERROR #2b.CA " + err2.toString();
                     body = { msg: "ERROR #2b.CA " + err2b.toString() }
                 }
@@ -157,7 +112,7 @@ module.exports = {
                 if (isCatch) {
                     res.status(500).send(body);
                 } else {
-                    console.log("$$ new_account - 201 OK");
+                    //console.log("$$ new_account - 201 OK");
                     res.status(201).send(body);
                 }
             })
@@ -167,8 +122,7 @@ module.exports = {
             console.error("## new_account ERR 1 (creating tx): " + JSON.stringify(err, null, 2));
             res.statusMessage = "ERROR #1.CA " + err.statusText;
             res.status(500).send({ msg: "ERROR #1.CA " + err.statusText });
-        })
-        ;
+        });
     },
 
     login_v2: function (req, res) {
@@ -186,9 +140,9 @@ module.exports = {
         }
         const h_email_ui128_reversed = invertBytesMd5Hex(h_email); // hash bytes get endian-reversed when saved by the eos contract action
         
-        console.log(`login_v2 -                e_email: ${e_email}`);
-        console.log(`login_v2 -                h_email: ${h_email}`);
-        console.log(`login_v2 - h_email_ui128_reversed: ${h_email_ui128_reversed}`);
+        //console.log(`login_v2 -                e_email: ${e_email}`);
+        //console.log(`login_v2 -                h_email: ${h_email}`);
+        //console.log(`login_v2 - h_email_ui128_reversed: ${h_email_ui128_reversed}`);
 
         // retrieve by supplied email hash (secondary index)
         eos.getTableRows({
@@ -203,12 +157,12 @@ module.exports = {
             limit: 1
         }).then(result => {
             const user = result.rows[0];
-            console.dir(user);
+            //console.dir(user);
 
             if (user != null && user != undefined) {
-                console.log(`login_v2 - fetched -    user.owner: ${user.owner}`);
-                console.log(`login_v2 - fetched -       e_email: ${user.e_email} (vs. ${e_email} supplied)`);
-                console.log(`login_v2 - fetched - h_email_ui128: ${user.h_email_ui128} (vs. ${h_email} supplied)`);
+                //console.log(`login_v2 - fetched -    user.owner: ${user.owner}`);
+                //console.log(`login_v2 - fetched -       e_email: ${user.e_email} (vs. ${e_email} supplied)`);
+                //console.log(`login_v2 - fetched - h_email_ui128: ${user.h_email_ui128} (vs. ${h_email} supplied)`);
 
                 //** UNCOMPRESS (assets_json only)
                 if (jschardet.detect(user.assets_json).encoding !== 'ascii') {
@@ -219,9 +173,9 @@ module.exports = {
                 }
 
                 //** L2 DECRYPT (all fields)
-                const dec_e_email = enc.aesDecryption(CryptoJS.MD5(user.owner).toString(), config.get("api_enc_key_1"), user.e_email);
-                const dec_assets_json = enc.aesDecryption(CryptoJS.MD5(e_email + user.owner).toString(), config.get("api_enc_key_2"), user.assets_json);
-                const dec_data_json = enc.aesDecryption(CryptoJS.MD5(e_email).toString(), config.get("api_enc_key_3"), user.data_json);
+                const dec_e_email = utils.aesDecryption(CryptoJS.MD5(user.owner).toString(), config.get("api_enc_key_1"), user.e_email);
+                const dec_assets_json = utils.aesDecryption(CryptoJS.MD5(e_email + user.owner).toString(), config.get("api_enc_key_2"), user.assets_json);
+                const dec_data_json = utils.aesDecryption(CryptoJS.MD5(e_email).toString(), config.get("api_enc_key_3"), user.data_json);
                 user.e_email = dec_e_email;
                 user.assets_json = dec_assets_json;
                 user.data_json = dec_data_json;
@@ -229,11 +183,11 @@ module.exports = {
                 // authentication
                 if (user.e_email !== e_email) { // email mismatch?
                     res.statusMessage = "ERROR #3.LI USER MISMATCH";
-                    console.log(res.statusMessage);
+                    console.error(`## login_v2: ${res.statusMessage} owner=${user.owner} e_email=${e_email} h_email=${h_email}`);
                     res.status(400).send({ msg: res.statusMessage });
                 }
                 else {
-                    console.log(`login_v2 - OK 200 ${user.owner}`);
+                    console.log(`$$ login_v2: owner=${user.owner} e_email=${e_email} h_email=${h_email} - OK 200`);
                     res.status(200).send({
                         res: "ok",
                         owner: user.owner,
@@ -245,11 +199,11 @@ module.exports = {
                 }
             } else {
                 res.statusMessage = "ERROR #2 USER NOT FOUND";
-                console.log(res.statusMessage);
+                console.error(`## login_v2: ${res.statusMessage} owner=${user.owner} e_email=${e_email} h_email=${h_email}`);
                 res.status(400).send({ msg: res.statusMessage });
             }
         }).catch(err => {
-            console.error("## login ERR 1: " + JSON.stringify(err.message, null, 2));
+            console.error("## login_v2: login ERR 1 - " + JSON.stringify(err.message, null, 2));
             res.statusMessage = "ERROR #1 USER NOT FOUND";
             res.status(500).send({ msg: res.statusMessage });
         })
@@ -265,8 +219,8 @@ module.exports = {
         if (!owner || !assetsJSONRaw || !e_email) return res.sendStatus(400);
         if (owner.length==0 || assetsJSONRaw.length==0 || e_email.length==0) return res.sendStatus(400);
         
-        var authenticated = await check_auth(owner, e_email);
-        console.log(`update_assets... ${owner} authenticated=${authenticated} assetsJSONRaw.len=${assetsJSONRaw.length}`);
+        var authenticated = await utils.check_auth(owner, e_email);
+        //console.log(`update_assets... ${owner} authenticated=${authenticated} assetsJSONRaw.len=${assetsJSONRaw.length}`);
         if (authenticated == false) {
             res.status(403).send({ msg: "PERMISSION DENIED" });
             return;
@@ -277,7 +231,7 @@ module.exports = {
         eos.transaction(config.get("scp_auth_account"), contract => {
 
             //** L2 ENCRYPT
-            const enc_assetsJSONRaw = enc.aesEncryption(CryptoJS.MD5(e_email + owner).toString(), config.get("api_enc_key_2"), assetsJSONRaw);
+            const enc_assetsJSONRaw = utils.aesEncryption(CryptoJS.MD5(e_email + owner).toString(), config.get("api_enc_key_2"), assetsJSONRaw);
 
             //** COMPRESS - reduces ~50% compared to ascii, probably mostly due to utf16 alone
             const compressed_enc_assetsJSONRaw = LZString.compressToUTF16(enc_assetsJSONRaw);
@@ -288,13 +242,12 @@ module.exports = {
             )
         })
         .then(tr_setAssets => {
-            console.log("$$ update_assets - setassets - TX DONE, txid=", tr_setAssets.transaction_id);
+            console.log(`$$ update_assets: owner=${owner} e_email=${e_email} txid=${tr_setAssets.transaction_id} - OK 200`);
             body = { res: "ok", txid: tr_setAssets.transaction_id, owner };
         })
         .catch(e => {
             console.error("ERROR #1.UA (" + e + ")");
             isCatch = true;
-
             try {
                 const json_err = JSON.parse(e); 
                 res.statusMessage = "ERROR #1A.UA (" + json_err.error.details[0].message + ")"; 
@@ -308,7 +261,7 @@ module.exports = {
             if (isCatch) {
                 res.status(500).send(body);
             } else {
-                console.log("$$ update_assets - 202 OK");
+                //console.log("$$ update_assets - 202 OK");
                 res.status(202).send(body);
             }
         })
@@ -324,8 +277,8 @@ module.exports = {
         if (!owner || !dataJSONRaw || !e_email) return res.sendStatus(400);
         if (owner.length==0 || dataJSONRaw.length==0 || e_email.length==0) return res.sendStatus(400);
 
-        var authenticated = await check_auth(owner, e_email);
-        console.log(`update_data... ${owner} authenticated=${authenticated} owner=${owner} e_email=${e_email}`);
+        var authenticated = await utils.check_auth(owner, e_email);
+        //console.log(`update_data... authenticated=${authenticated} owner=${owner} e_email=${e_email}`);
         if (authenticated == false) {
             res.status(403).send({ msg: "PERMISSION DENIED" });
             return;
@@ -334,23 +287,20 @@ module.exports = {
         let body = {};
         let isCatch = false;
         eos.transaction(config.get("scp_auth_account"), contract => {
-
             contract.setdata(owner,
                 //** ENCRYPT
-                enc.aesEncryption(CryptoJS.MD5(e_email).toString(), config.get("api_enc_key_3"), dataJSONRaw),
+                utils.aesEncryption(CryptoJS.MD5(e_email).toString(), config.get("api_enc_key_3"), dataJSONRaw),
                 { authorization: [ config.get("scp_auth_account") + '@active' ] }
             )
-
-            console.log("*** Update data: OK ***");
+            //console.log("*** Update data: OK ***");
         })
-        .then(tr_setData => {
-            console.log("$$ update_data - setdata - TX DONE, txid=", tr_setData.transaction_id);
+        .then(tr_setData => { 
+            console.log(`$$ update_data: owner=${owner} e_email=${e_email} txid=${tr_setData.transaction_id} - OK 200`);
             body = { res: "ok", txid: tr_setData.transaction_id, owner };
         })
         .catch(e => {
-            console.log("ERROR #1.UD (" + e + ")");
+            console.error("## update_data: ERROR #1.UD (" + e + ")");
             isCatch = true;
-
             try {
                 const json_err = JSON.parse(e);
                 res.statusMessage = "ERROR #1A.UD (" + json_err.error.details[0].message + ")"; 
@@ -364,7 +314,7 @@ module.exports = {
             if (isCatch) {
                 res.status(500).send(body);
             } else {
-                console.log("$$ update_data - 202 OK");
+                //console.log("$$ update_data - 202 OK");
                 res.status(202).send(body);
             }
         })

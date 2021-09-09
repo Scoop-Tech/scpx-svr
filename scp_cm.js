@@ -1,10 +1,10 @@
-// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 //
 // scp_cm -- cryptomail
 //
 
-'use strict';
+/*'use strict';
 
 const jayson = require('jayson');
 const CryptoJS = require("crypto-js");
@@ -101,4 +101,4 @@ function rpc_op(cmd, params) {
             }
         });
     });
-}
+}*/

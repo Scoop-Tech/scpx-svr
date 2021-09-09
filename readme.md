@@ -1,5 +1,5 @@
 # Scoop API Server
-v0.9
+v0.11
 
 RESTful node.js Express web server for the [Scoop Wallet](https://github.com/Scoop-Tech/scpx-wallet).
 
@@ -38,7 +38,7 @@ RESTful node.js Express web server for the [Scoop Wallet](https://github.com/Sco
 
 ## Building from Source
 
-  * `nvm install v10.20.1`
+  * `nvm install v14.16.0`
   * PowerShell: `$env:DEV = 1` - required for CORS patching
   * Linux: `export DEV=1`
   * `npm start` or `nodemon`

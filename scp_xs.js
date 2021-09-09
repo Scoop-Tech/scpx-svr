@@ -1,4 +1,4 @@
-// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2020 Dominic Morris.
+// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 //
 // scp_xs -- exchange service(s)
@@ -28,7 +28,7 @@ module.exports = {
         if (!o_rpc_params) {
             res.status(400).send( { msg: "bad params (3)" } ); return;
         }
-        console.log("$$ changelly_sign - o_rpc_params=", o_rpc_params);
+        //console.log("changelly_sign - o_rpc_params=", o_rpc_params);
 
         // save
         if (o_rpc_params.method === 'createFixTransaction' || o_rpc_params.method === 'createTransaction') {
@@ -46,7 +46,7 @@ module.exports = {
             .input('rateId', sql.NVarChar, `${rateId}`)
             .query(`INSERT INTO [_scpx_xs_tx] VALUES (GETUTCDATE(), @from, @to, @address, @amount, @rateId, 'CHANGELLY')`)
             .then((result) => {
-                console.log(`changelly_sign - xs_tx save ok (amount=${amount})`, result.rowsAffected);
+                //console.log(`changelly_sign: - xs_tx save ok (amount=${amount})`, result.rowsAffected);
             }).catch(err => {
                 console.warn(`## changelly_sign - SQL failed: ${err.message}`, err);
             })
@@ -55,7 +55,7 @@ module.exports = {
         // sign
         const sign = CryptoJS.HmacSHA512(JSON.stringify(o_rpc_params), config.get("changelly_api_secret"));
         const sig = sign.toString()
-        console.log(`$$ changelly_sign - DONE (${rpc_params_json}), sig=`, sig);
+        console.log(`$$ changelly_sign: rpc_params_json=(${rpc_params_json}) - OK 200`);
 
         res.status(200).send({ res: "ok", data: sig }); 
     },
