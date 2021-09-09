@@ -7,7 +7,12 @@
   "scripts": {
     "start": "node ./bin/www"
   },
-  "devDependencies": {
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Scoop-Tech/scpx-svr"
+},
+"homepage": "https://scoop.tech",
+"devDependencies": {
     "nodemon": "^1.18.7"
   },
   "dependencies": {

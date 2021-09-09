@@ -82,17 +82,15 @@ module.exports = {
 const send = async (res, owner, symbol, value, to) => {
     const op = await utils.scpx_wallet_rpc('tx-push', JSON.stringify({ symbol, value, to }));
     if (op && op.response && op.response.result && op.response.result.ok) {
-        // console.dir(op.response.result.ok);
-        // console.log(JSON.stringify(op.response.result.ok));
         console.log(`$$ faucet_drip: dripped ${value} ${symbol} to ${to} for owner=${owner}`);
-        const save = await scp_sql_pool.request()
-            .input('owner', sql.NVarChar, `${owner}`)
-            .input('symbol', sql.NVarChar, `${symbol}`)
-            .input('txid', sql.NVarChar, `${op.response.result.ok.txid}`)
-            .query(`INSERT INTO [_scpx_faucet_drip] VALUES (@owner, GETUTCDATE(), @symbol, @txid)`)
-            .catch(err => {
-                console.error(`## faucet_drip - INSERT failed! ${err.message}`, err);
-            });
+        // const save = await scp_sql_pool.request()
+        //     .input('owner', sql.NVarChar, `${owner}`)
+        //     .input('symbol', sql.NVarChar, `${symbol}`)
+        //     .input('txid', sql.NVarChar, `${op.response.result.ok.txid}`)
+        //     .query(`INSERT INTO [_scpx_faucet_drip] VALUES (@owner, GETUTCDATE(), @symbol, @txid)`)
+        //     .catch(err => {
+        //         console.error(`## faucet_drip - INSERT failed! ${err.message}`, err);
+        //     });
         return { txid: op.response.result.ok.txid };
     }
     else { 
