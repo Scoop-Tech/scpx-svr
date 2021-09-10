@@ -222,7 +222,7 @@ module.exports = {
         var authenticated = await utils.check_auth(owner, e_email);
         //console.log(`update_assets... ${owner} authenticated=${authenticated} assetsJSONRaw.len=${assetsJSONRaw.length}`);
         if (authenticated == false) {
-            res.status(403).send({ msg: "PERMISSION DENIED" });
+            res.status(403).send({ msg: "Permission denied" });
             return;
         }
 
@@ -280,7 +280,7 @@ module.exports = {
         var authenticated = await utils.check_auth(owner, e_email);
         //console.log(`update_data... authenticated=${authenticated} owner=${owner} e_email=${e_email}`);
         if (authenticated == false) {
-            res.status(403).send({ msg: "PERMISSION DENIED" });
+            res.status(403).send({ msg: "Permission denied" });
             return;
         }
 

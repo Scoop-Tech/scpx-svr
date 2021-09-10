@@ -24,24 +24,28 @@ module.exports = {
         let btc_test_addr = req.body.btc_test_addr;
       //let btc_bech32_test_addr = req.body.btc_bech32_test_addr;
         let eth_test_addr = req.body.eth_test_addr;
-        if (!btc_test_addr || !eth_test_addr || !owner || !e_email) return res.sendStatus(400);
+        if (!owner || !e_email) return res.sendStatus(400);
         if (owner.length==0 || e_email.length==0) return res.sendStatus(400);
 
-        const isValid_BtcTest = WAValidator(btc_test_addr, 'BTC', 'testnet'); // or... 'BECH32', 'prod'
-        const isValid_EthTest = WAValidator(eth_test_addr, 'ETH', 'testnet'); 
-        if (!isValid_BtcTest) return res.sendStatus(400);
-        if (!isValid_EthTest) return res.sendStatus(400);
+        var isValid_BtcTest, isValid_EthTest
+        if (btc_test_addr && btc_test_addr.length > 0) {
+            isValid_BtcTest = WAValidator(btc_test_addr, 'BTC', 'testnet'); // or... 'BECH32', 'prod'
+            if (!isValid_BtcTest) return res.status(400).send(`Invalid BTC_TEST address`);
+        }
+        if (eth_test_addr && eth_test_addr.length > 0) {
+            isValid_EthTest = WAValidator(eth_test_addr, 'ETH', 'testnet'); 
+            if (!isValid_EthTest) return res.status(400).send(`Invalid ETH_TEST address`);
+        }
 
         // authentication
         const authenticated = await utils.check_auth(owner, e_email);        
         if (authenticated == false) {
-            res.status(403).send({ msg: "PERMISSION DENIED" });
-            return;
+            return res.status(403).send({ msg: "Permission denied" });
         }
 
         // get last drip datetime from DB; only drip once for this owner & asset
-        const dripBtc = await exists(owner, 'BTC_TEST') == false;
-        const dripEth = await exists(owner, 'ETH_TEST') == false;
+        const dripBtc = isValid_BtcTest && (await exists(owner, 'BTC_TEST') == false);
+        const dripEth = isValid_EthTest && (await exists(owner, 'ETH_TEST') == false);
         //console.log('dripBtc', dripBtc);
         //console.log('dripEth', dripEth);
         
