@@ -48,7 +48,7 @@ module.exports = {
         const dripEth = isValid_EthTest && (await exists(owner, 'ETH_TEST') == false);
         //console.log('dripBtc', dripBtc);
         //console.log('dripEth', dripEth);
-        const MIN_BTC_TEST = 0.1, DRIP_BTC_TEST = 0.00002; // 2k Sats
+        const MIN_BTC_TEST = 0.1, DRIP_BTC_TEST = 0.00003; // 3k Sats
         const MIN_ETH_TEST = 1.0, DRIP_ETH_TEST = 0.0001;
         if (dripBtc || dripEth) {
             // todo: get/validate balance from wallet first...
@@ -86,14 +86,14 @@ const send = async (res, owner, symbol, value, to) => {
     const op = await utils.scpx_wallet_rpc('tx-push', JSON.stringify({ symbol, value, to }));
     if (op && op.response && op.response.result && op.response.result.ok) {
         console.log(`$$ faucet_drip: dripped ${value} ${symbol} to ${to} for owner=${owner}`);
-        // const save = await scp_sql_pool.request()
-        //     .input('owner', sql.NVarChar, `${owner}`)
-        //     .input('symbol', sql.NVarChar, `${symbol}`)
-        //     .input('txid', sql.NVarChar, `${op.response.result.ok.txid}`)
-        //     .query(`INSERT INTO [_scpx_faucet_drip] VALUES (@owner, GETUTCDATE(), @symbol, @txid)`)
-        //     .catch(err => {
-        //         console.error(`## faucet_drip - INSERT failed! ${err.message}`, err);
-        //     });
+        const save = await scp_sql_pool.request()
+            .input('owner', sql.NVarChar, `${owner}`)
+            .input('symbol', sql.NVarChar, `${symbol}`)
+            .input('txid', sql.NVarChar, `${op.response.result.ok.txid}`)
+            .query(`INSERT INTO [_scpx_faucet_drip] VALUES (@owner, GETUTCDATE(), @symbol, @txid)`)
+            .catch(err => {
+                console.error(`## faucet_drip - INSERT failed! ${err.message}`, err);
+            });
         return { txid: op.response.result.ok.txid, value };
     }
     else { 
