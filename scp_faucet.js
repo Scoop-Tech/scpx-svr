@@ -48,8 +48,7 @@ module.exports = {
         const dripEth = isValid_EthTest && (await exists(owner, 'ETH_TEST') == false);
         //console.log('dripBtc', dripBtc);
         //console.log('dripEth', dripEth);
-        
-        const MIN_BTC_TEST = 0.1, DRIP_BTC_TEST = 0.00001;
+        const MIN_BTC_TEST = 0.1, DRIP_BTC_TEST = 0.00002; // 2k Sats
         const MIN_ETH_TEST = 1.0, DRIP_ETH_TEST = 0.0001;
         if (dripBtc || dripEth) {
             // todo: get/validate balance from wallet first...
@@ -95,7 +94,7 @@ const send = async (res, owner, symbol, value, to) => {
         //     .catch(err => {
         //         console.error(`## faucet_drip - INSERT failed! ${err.message}`, err);
         //     });
-        return { txid: op.response.result.ok.txid };
+        return { txid: op.response.result.ok.txid, value };
     }
     else { 
         console.error(`## faucet_drip: unexpected RPC(tx-push(${symbol})) return - `, JSON.stringify(op)); 
