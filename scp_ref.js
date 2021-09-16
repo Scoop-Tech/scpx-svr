@@ -1,7 +1,7 @@
 // Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
 
 //
-// scp_ref -- referrals
+// scp_ref -- referrals (v1 - thse are dumb one way invites; see scp_invite.js for v2 smart invites)
 //
 
 'use strict';
@@ -101,9 +101,9 @@ ${config.WEBSITE_DOMAIN}`
                 //***
                 from,
                 phone, 
-`${referer_firstname} has invited you to join Scoop!\n
+`${referer_firstname} has invited you to join Scoop.\n
 ${config.WEBSITE_DOMAIN}\n
-Scoop makes digital payments instant, secure and easy.`
+Trustless asset protection: let someone else spend it when you can't...`
                 //options, callback
                 ); // todo - check sent ok
             

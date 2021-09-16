@@ -15,6 +15,7 @@ const scp_xs = require('./scp_xs');
 //const scp_cm = require('./scp_cm');
 const scp_stm = require('./scp_stm');
 const scp_faucet = require('./scp_faucet');
+const scp_invite = require('./scp_invite');
 const scp_dbg = require('./scp_dbg');
 const sql = require('mssql');
 const config = require('./config');
@@ -83,6 +84,7 @@ if (process.env.DEV === "1") {
     app.use("/api/account", generous_limiter);
     app.use("/api/refer", generous_limiter);
     app.use("/api/faucet", generous_limiter);
+    app.use("/api/invite_link", generous_limiter);
     //app.use("/api/stm", generous_limiter); // no limit on this endpoint - it's called in parallel by wallet worker threads (see: action/s/wallet.js:newWalletAddressFromPrivKey())
 
     const paranoid_limiter = rateLimit({
@@ -94,6 +96,7 @@ if (process.env.DEV === "1") {
     app.use("/api/login_v2", paranoid_limiter); 
     app.use("/api/account", paranoid_limiter);
     app.use("/api/faucet", paranoid_limiter);
+    app.use("/api/invite_link", paranoid_limiter);
 
 // soft rate limiter - this slows down requests are limits are breached
     const speed_limiter = slowDown({
@@ -129,7 +132,7 @@ app.get('/api/ol', function (req, res) { res.status(200).send(                  
 ); });
 
 /*
- * Referral
+ * Referral (dumb, v1)
  */
 app.post('/api/refer', function (req, res) { scp_ref.send_refs(req, res); });
 
@@ -152,6 +155,11 @@ app.post('/api/xs/c/sign', function (req, res) { scp_xs.changelly_sign(req, res)
  * Faucet
  */
 app.post('/api/faucet', function (req, res) { scp_faucet.faucet_drip(req, res); });
+
+/*
+ * Invite Links (smart, v2)
+ */
+app.post('/api/invite_link', function (req, res) { scp_invite.send_invite_link(req, res); });
 
 /*
  * dbg

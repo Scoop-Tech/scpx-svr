@@ -38,7 +38,7 @@ module.exports = {
         }
 
         // authentication
-        const authenticated = await utils.check_auth(owner, e_email);        
+        const authenticated = await utils.check_auth(owner, e_email);
         if (authenticated == false) {
             return res.status(403).send({ msg: "Permission denied" });
         }
