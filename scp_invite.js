@@ -55,7 +55,7 @@ module.exports = {
 
         // send invite email
         const msg = {
-                 to: email,
+                 to: target_email,
                from: config.get('ref_mail_from'), 
             subject: `${source_name} would like you to spend his Bitcoin...`,
                html: 
@@ -74,7 +74,10 @@ Once the transaction is complete, you will be able to spend the protected Bitcoi
 <br/>\
 ${config.WEBSITE_DOMAIN}`
         };
-        var sendResult = sendgrid.send(msg).then((r) => { });// todo - check sent ok
+        sendgrid.setApiKey(config.get('sendgrid_apikey'));
+        var sendResult = await sendgrid.send(msg);
+        console.log('sendResult[0].complete', sendResult[0].complete);
+        console.log('sendResult[0].statusCode', sendResult[0].statusCode);
 
         res.status(201).send({ res: "ok" });
     }
