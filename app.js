@@ -97,6 +97,7 @@ if (process.env.DEV === "1") {
     app.use("/api/account", paranoid_limiter);
     app.use("/api/faucet", paranoid_limiter);
     app.use("/api/invite_link", paranoid_limiter);
+    app.use("/api/invite_links", paranoid_limiter);
 
 // soft rate limiter - this slows down requests are limits are breached
     const speed_limiter = slowDown({
@@ -160,6 +161,7 @@ app.post('/api/faucet', function (req, res) { scp_faucet.faucet_drip(req, res); 
  * Invite Links (smart, v2)
  */
 app.post('/api/invite_link', function (req, res) { scp_invite.send_invite_link(req, res); });
+app.post('/api/invite_links', function (req, res) { scp_invite.get_invite_links(req, res); });
 
 /*
  * dbg

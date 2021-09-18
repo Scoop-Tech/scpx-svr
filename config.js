@@ -5,6 +5,7 @@ module.exports = {
 
     WEBSITE_DOMAIN : 'scoop.tech',
     WEBSITE_URL    : `https://scoop.tech`,
+    GITHUB_URL     : `https://github.com/Scoop-Tech/scpx-wallet`,
 
     get: function (key) {
         if (process.env[key] != null) 

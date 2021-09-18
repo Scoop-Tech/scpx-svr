@@ -14,8 +14,7 @@ const sendgrid = require('@sendgrid/mail');
 const utils = require('./scp_util.js');
 
 module.exports = {
-    // send invite: by singular invite - email only
-    send_invite_link: async function (req, res) {
+    send_invite_link: async function (req, res) { // sends an invite-link: singular invite - email only
         if (!req.body) return res.sendStatus(400);
         const config = require('./config');
        
@@ -24,7 +23,8 @@ module.exports = {
         let e_email = req.body.e_email;
         let target_email = req.body.target_email;
         let source_name = req.body.source_name;
-        if (!owner || !e_email || !target_email || !source_name) return res.sendStatus(400);
+        let source_email = req.body.source_email;
+        if (!owner || !e_email || !target_email || !source_name) return res.sendStatus(400); // keep source_email optional
         if (owner.length==0 || e_email.length==0 || target_email.length==0 || source_name.length==0) return res.sendStatus(400);
 
         // authentication
@@ -33,25 +33,26 @@ module.exports = {
             return res.status(403).send({ msg: "Permission denied" });
         }
 
-        // if (await exists(owner, target_email)) {
-        //     return res.status(400).send({ msg: "Already invited" });
-        // }
+        if (await exists(owner, target_email)) {
+            return res.status(400).send({ msg: "Already invited" });
+        }
 
         // create the invite row
         const save = await scp_sql_pool.request()
         .input('owner', sql.NVarChar, `${owner}`)
         .input('target_email', sql.NVarChar, `${target_email}`)
+        .input('source_email', sql.NVarChar, source_email || null)
         .query(`INSERT INTO [_scpx_invite]\
-            ([owner], [accepted_utc], [payload_json], [target_email])\
-            VALUES (@owner, NULL, NULL, @target_email); \
+            ([owner], [accepted_utc], [payload_json], [target_email], [source_email])\
+            VALUES (@owner, NULL, NULL, @target_email, @source_email); \
             SELECT @@IDENTITY`)
         .catch(err => {
             console.error(`## send_invite_link - INSERT failed! ${err.message}`, err);
         });
-        const id = Object.values(save.recordset[0])[0]
-        const row = (await by_id(id))[0]
-        const invite_id = row.invite_id
-        const invite_url = `${config.WEBSITE_URL}/invite/${invite_id}`
+        const id = Object.values(save.recordset[0])[0];
+        const row = (await by_id(id))[0];
+        const invite_id = row.invite_id.toLowerCase();
+        const invite_url = `${config.WEBSITE_URL}/invite?id=${invite_id}`;
 
         // send invite email
         const msg = {
@@ -61,25 +62,50 @@ module.exports = {
                html: 
 `${source_name} is inviting you to spend his Bitcoin, in case one day he (or she) can’t.<br/>\
 <br/>\
-Scoop is a trustless and non-custodial way of protecting Bitcoin so it can be passed on in the event of the holder's death or incapacitation.<br/>\
-<br/>\
-Follow this link to create your wallet:<br/>\
-<a href='${invite_url}'>${invite_url}</a><br/>\
+Follow this link to create your wallet: <a href='${invite_url}'>${invite_url}</a><br/>\
 <br/>\
 Dominic Morris can then complete the transaction to make you his/her beneficiary.<br/>\
 <br/>\
-Once the transaction is complete, you will be able to spend the protected Bitcoin after a time lock expires.<br/>\
+Thank you,<br/>\
 <br/>\
-<br/>Thank you,<br/>\
-<br/>\
-${config.WEBSITE_DOMAIN}`
+${config.WEBSITE_DOMAIN}<br/>\
+Trustless estate planning for Bitcoin and Ethereum assets.<br/>\
+${config.GITHUB_URL}`
         };
-        sendgrid.setApiKey(config.get('sendgrid_apikey'));
+        const apiKey = config.get('sendgrid_apikey');
+        sendgrid.setApiKey(apiKey);
         var sendResult = await sendgrid.send(msg);
-        console.log('sendResult[0].complete', sendResult[0].complete);
-        console.log('sendResult[0].statusCode', sendResult[0].statusCode);
+        if (!sendResult || sendResult.length == 0 || sendResult[0].statusCode != 202) {
+            console.log(`## send_invite_link: unexpected for owner=${owner}, sendResult=`, sendResult);
+        }
+        else {
+            console.log(`$$ send_invite_link: invited ${target_email} with sendResult ${sendResult[0].statusCode} for owner=${owner}`);
+        }
+        res.status(201).send({ res: "ok", sendResultStatusCode: sendResult[0].statusCode });
+    },
 
-        res.status(201).send({ res: "ok" });
+    get_invite_links: async function (req, res) { // gets all invite-links sent by the specified (& authenticated) owner
+        if (!req.body) return res.sendStatus(400);
+        
+        // validation
+        let owner = req.body.owner; 
+        let e_email = req.body.e_email;
+        if (!owner || !e_email) return res.sendStatus(400);
+        if (owner.length==0 || e_email.length==0) return res.sendStatus(400);
+
+        // authentication
+        const authenticated = await utils.check_auth(owner, e_email);
+        if (authenticated == false) {
+            return res.status(403).send({ msg: "Permission denied" });
+        }
+
+        const invites = await global.scp_sql_pool.request()
+        .input('owner', sql.NVarChar, `${owner}`)
+        .query(`SELECT [created_utc], [accepted_utc], [payload_json], [target_email] FROM [_scpx_invite] WHERE [owner] = @owner ORDER BY [id] DESC`)
+        .catch(err => { console.error(`## get_invite_links: SQL failed - ${err.message}`); });
+        
+        console.log(`$$ get_invite_links: ok for owner=${owner}`);
+        res.status(200).send({ res: "ok", invites: invites.recordset });
     }
 }
 
