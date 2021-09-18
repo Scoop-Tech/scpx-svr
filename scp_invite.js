@@ -34,7 +34,7 @@ module.exports = {
         }
 
         if (await exists(owner, target_email)) {
-            return res.status(400).send({ msg: "Already invited" });
+            return res.status(201).send({ res: "ok", msg: `Already invited ${target_email}` });
         }
 
         // create the invite row
@@ -77,11 +77,12 @@ ${config.GITHUB_URL}`
         var sendResult = await sendgrid.send(msg);
         if (!sendResult || sendResult.length == 0 || sendResult[0].statusCode != 202) {
             console.log(`## send_invite_link: unexpected for owner=${owner}, sendResult=`, sendResult);
+            return res.status(500).send({ msg: "Send failed" });
         }
         else {
             console.log(`$$ send_invite_link: invited ${target_email} with sendResult ${sendResult[0].statusCode} for owner=${owner}`);
         }
-        res.status(201).send({ res: "ok", sendResultStatusCode: sendResult[0].statusCode });
+        res.status(201).send({ res: "ok", msg: `${target_email}`,});
     },
 
     get_invite_links: async function (req, res) { // gets all invite-links sent by the specified (& authenticated) owner
