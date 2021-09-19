@@ -165,7 +165,7 @@ An open <a href='${config.GITHUB_URL}'>source</a> project.\
         if (invite.symbol != symbol) return res.sendStatus(404);
         if (invite.accepted_utc != null) {
             console.error(`## accept_invite_link: already accepted for owner=${owner}, symbol=${symbol}, invite_id=${invite_id}`);
-            return res.sendStatus(400);
+            return res.sendStatus(403); // forbidden
         }
 
         // update it
@@ -181,6 +181,8 @@ An open <a href='${config.GITHUB_URL}'>source</a> project.\
             console.error(`## accept_invite_link - unexpected update count for owner=${owner}, symbol=${symbol}, invite_id=${invite_id}`);
             return res.sendStatus(400);
         }
+
+        // TODO: notify benefactor by email...
 
         console.log(`$$ accept_invite_link: ok for owner=${owner}, symbol=${symbol}, invite_id=${invite_id}`);
         res.status(200).send({ res: "ok", });
