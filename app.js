@@ -162,6 +162,8 @@ app.post('/api/faucet', function (req, res) { scp_faucet.faucet_drip(req, res); 
  */
 app.post('/api/invite_link', function (req, res) { scp_invite.send_invite_link(req, res); });
 app.post('/api/invite_links', function (req, res) { scp_invite.get_invite_links(req, res); });
+app.get('/api/invite_link/:iid', (req, res) => { scp_invite.get_invite_link(req, res); });
+app.put('/api/invite_link', function (req, res) { scp_invite.accept_invite_link(req, res); });
 
 /*
  * dbg
