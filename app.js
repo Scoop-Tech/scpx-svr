@@ -72,32 +72,31 @@ if (process.env.DEV === "1") {
 }
 
 // hard rate limits - these block requests after limits are breached
-    const generous_limiter = rateLimit({
-        windowMs: 1 * 60 * 1000, // 15 per minute max == every 4 seconds
+    const limit_slow = rateLimit({
+        windowMs: 1 * 60 * 1000, // 15 per minute max == 1 every 4 seconds
         max: 15,
         handler: (req, res, /*next*/) => { console.log(`### generous_limiter - handler: ${req.url}`); /*set_cors(req, res);*/ res.status(429).send("Scoop Limit #1a"); },
         onLimitReached: (req, res, options) => { console.log(`### generous_limiter - onLimitReached: ${req.url}`); }
     });
-    app.use("/api/assets", generous_limiter);
-    app.use("/api/data", generous_limiter);
-    app.use("/api/login_v2", generous_limiter); 
-    app.use("/api/account", generous_limiter);
-    app.use("/api/refer", generous_limiter);
-    app.use("/api/faucet", generous_limiter);
-    app.use("/api/invite_link", generous_limiter);
+    app.use("/api/assets", limit_slow);
+    app.use("/api/data", limit_slow);
+    app.use("/api/login_v2", limit_slow); 
+    app.use("/api/account", limit_slow);
+    app.use("/api/refer", limit_slow);
+    app.use("/api/faucet", limit_slow);
+    app.use("/api/invite_link", limit_slow);
     //app.use("/api/stm", generous_limiter); // no limit on this endpoint - it's called in parallel by wallet worker threads (see: action/s/wallet.js:newWalletAddressFromPrivKey())
 
-    const paranoid_limiter = rateLimit({
-        windowMs: 1 * 1000, // 2 per second max.
+    const limit_faster = rateLimit({
+        windowMs: 1 * 1000, // 2 per second max == 1 every 0.5 second
         max: 2,
         handler: (req, res, /*next*/) => { console.log(`### paranoid_limiter - handler: ${req.url}`); /*set_cors(req, res);*/ res.status(429).send("Scoop Limit #1b"); },
         onLimitReached: (req, res, options) => { console.log(`### paranoid_limiter - onLimitReached: ${req.url}`); }
     });
-    app.use("/api/login_v2", paranoid_limiter); 
-    app.use("/api/account", paranoid_limiter);
-    app.use("/api/faucet", paranoid_limiter);
-    app.use("/api/invite_link", paranoid_limiter);
-    app.use("/api/invite_links", paranoid_limiter);
+    app.use("/api/login_v2", limit_faster); 
+    app.use("/api/account", limit_faster);
+    app.use("/api/faucet", limit_faster);
+    app.use("/api/invite_links", limit_faster);
 
 // soft rate limiter - this slows down requests are limits are breached
     const speed_limiter = slowDown({
