@@ -7,6 +7,7 @@
 'use strict';
 
 const sql = require('mssql');
+const email_lib = require('./email_lib.js');
 
 module.exports = {
 
@@ -53,30 +54,15 @@ module.exports = {
         async.each(capped_emails, (email) => {
             console.log(`send_refs - each(email) [${email}]...`)
 
-            const msg = {
-                //***
-                to: email,
-                from: config.get('ref_mail_from'), 
-
-                // send from refer's email addr - triggers spam/security warning in gmail; better - send using gmail API
-                //from: googEmail, 
-                //cc: config.get('ref_mail_from'),
-
-                subject: `${referer_firstname} has invited you to Scoop! 💖`,
-                html: 
-`Hi there!<br/>
+            const sendResult = email_lib.send_mail({
+                 to: email,
+            subject: `${referer_firstname} is inviting you to protect your crypto assets...`,
+               html: `${googDisplayName} is using Scoop, and has invited you to join.<br/>\
+<br/>\
+Scoop is a trustless (non-custodial) solution providing trustless (non-custodial) social recovery for your crypto assets.<br/>
 <br/>
-${googDisplayName} is using Scoop, and has invited you to join.<br/>
-<br/>
-Scoop makes digital payments instant, secure and easy.<br/>
-<br/>
-<a href='${config.WEBSITE_URL}'>Join Scoop</a>, spread the word!<br/>
-<br/>
-Kind regards,<br/>
-<b>Scoop</b><br/>
-${config.WEBSITE_DOMAIN}`
-            };
-            var sendResult = sendgrid.send(msg).then((r) => { });// todo - check sent ok
+Create a wallet now and nominate your beneficiaries.`
+            });
 
             // save
             scp_sql_pool.request()
@@ -123,7 +109,7 @@ Trustless asset protection: let someone else spend it when you can't...`
         });
 
         // send summary, internal
-        nx.message.sendSms(config.get('ref_sms_from'), config.get('ref_sms_summary_to'), `SCP send-refs: ${googEmail} -> emails: ${emails.length} phones: ${phones.length}`);
+        //nx.message.sendSms(config.get('ref_sms_from'), config.get('ref_sms_summary_to'), `SCP send-refs: ${googEmail} -> emails: ${emails.length} phones: ${phones.length}`);
     },
 
 };

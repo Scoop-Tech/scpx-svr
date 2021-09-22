@@ -7,12 +7,11 @@
 
 'use strict';
 
-const eos_lib = require('./eos_lib'); 
 const sql = require('mssql');
-const sendgrid = require('@sendgrid/mail');
 
 const config = require('./config');
 const utils = require('./scp_util.js');
+const email_lib = require('./email_lib.js');
 
 module.exports = {
 
@@ -69,7 +68,7 @@ module.exports = {
 
             // send email to target
             const { p, pp } = pronouns(source_gender);
-            const sendResult = await send_mail({
+            const sendResult = await email_lib.send_mail({
                  to: target_email,
             subject: `${source_name || source_email} would like you to spend ${pp} ${asset}...`,
                html: 
@@ -110,7 +109,9 @@ ${source_first_name || source_email} can then complete ${pp} transaction to make
 
             const invites = await global.scp_sql_pool.request()
             .input('owner', sql.NVarChar, `${owner}`)
-            .query(`SELECT [created_utc], [accepted_utc], [payload_json], [target_email], [target_name], [symbol], [invite_id] FROM [_scpx_invite] WHERE [owner] = @owner ORDER BY [id] DESC`)
+            .query(`SELECT [created_utc], [accepted_utc], [payload_json], [target_email], [target_name], [symbol], [invite_id] \
+            FROM [_scpx_invite] \
+            WHERE [owner] = @owner ORDER BY [id] DESC`)
             .catch(err => { console.error(`## get_invite_links: SQL failed - ${err.message}`); });
             
             console.log(`$$ get_invite_links: ok for owner=${owner}`);
@@ -198,7 +199,7 @@ ${source_first_name || source_email} can then complete ${pp} transaction to make
             const { p, pp } = pronouns(invite.source_gender);
             const asset = asset_name(symbol);
             const wallet_url = `${config.WEBSITE_URL}/unlock-wallet`;
-            const sendResult = await send_mail({
+            const sendResult = await email_lib.send_mail({
                  to: invite.source_email,
             subject: `${invite.target_name || invite.target_email} has accepted your invite`,
                html: 
@@ -221,25 +222,25 @@ Open your <a href='${wallet_url}'>wallet</a> to complete the transaction.`
     },
 }
 
-const send_mail = async(p) => {
-    const msg = {
-        to: p.to,
-      from: config.get('ref_mail_from'), 
-   subject: p.subject,
-      html:
-`<div style='font-size:larger'>${p.html}\
-<br/>\
-<br/>\
-<b>${config.WEBSITE_DOMAIN}</b><br/>\
-<div style='font-style:italic;'>Trustless crypto social recovery: let someone else spend it when you can't.</div>
-An open <a href='${config.GITHUB_URL}'>source</a> project.\
-</div>` 
-    };
-    const apiKey = config.get('sendgrid_apikey');
-    sendgrid.setApiKey(apiKey);
-    var sendResult = await sendgrid.send(msg);
-    return sendResult;
-}
+// const send_mail = async(p) => {
+//     const msg = {
+//         to: p.to,
+//       from: config.get('ref_mail_from'), 
+//    subject: p.subject,
+//       html:
+// `<div style='font-size:larger'>${p.html}\
+// <br/>\
+// <br/>\
+// <b>${config.WEBSITE_DOMAIN}</b><br/>\
+// <div style='font-style:italic;'>Trustless crypto social recovery: let someone else spend it when you can't.</div>
+// An open <a href='${config.GITHUB_URL}'>source</a> project.\
+// </div>` 
+//     };
+//     const apiKey = config.get('sendgrid_apikey');
+//     sendgrid.setApiKey(apiKey);
+//     var sendResult = await sendgrid.send(msg);
+//     return sendResult;
+// }
 
 const exists = async (owner, target_email, symbol) => {
     const result = await global.scp_sql_pool.request()
