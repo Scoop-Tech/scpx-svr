@@ -48,7 +48,7 @@ module.exports = {
         const dripEth = isValid_EthTest && (await exists(owner, 'ETH_TEST') == false);
         //console.log('dripBtc', dripBtc);
         //console.log('dripEth', dripEth);
-        const MIN_BTC_TEST = 0.1, DRIP_BTC_TEST = 0.00003; // 3k Sats
+        const MIN_BTC_TEST = 0.1, DRIP_BTC_TEST = 0.0003; // 30k sats
         const MIN_ETH_TEST = 1.0, DRIP_ETH_TEST = 0.0001;
         if (dripBtc || dripEth) {
             // todo: get/validate balance from wallet first...
