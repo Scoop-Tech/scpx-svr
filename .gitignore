@@ -65,3 +65,4 @@ typings/
 
 # VS Code Azure Deployment
 .deployment
+.github
