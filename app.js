@@ -30,6 +30,21 @@ console.log(info);
 console.log(`process.env.PORT: ${process.env.PORT}`);
 console.log(`process.env.DEV: ${process.env.DEV}`);
 
+// CRITICAL: Check for required NODE_OPTIONS for eosjs v16 compatibility
+if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes('--openssl-legacy-provider')) {
+    console.error('');
+    console.error('##########################################################################');
+    console.error('## FATAL ERROR: NODE_OPTIONS=--openssl-legacy-provider is NOT set!');
+    console.error('## This is REQUIRED for eosjs v16 to work with Node.js v14+');
+    console.error('##');
+    console.error('## To fix:');
+    console.error('##   Local: export NODE_OPTIONS=--openssl-legacy-provider');
+    console.error('##   Azure: Add environment variable in App Service settings');
+    console.error('##########################################################################');
+    console.error('');
+    process.exit(1);
+}
+
 // SQL connection (main - SCP DB)
 sql.on('error', err => { console.warn(`### sql.on (global handler): ${err.message}`, err); });
 global.scp_sql_pool = new sql.ConnectionPool(config.scp_sql_config());

@@ -30,7 +30,7 @@ function invertBytesMd5Hex(s) {
 
 module.exports = {
 
-    // new account
+    // new_account
     new_account: function (req, res) {
         var eos = eos_lib.init();
         if (!req.body) return res.sendStatus(400);
@@ -48,9 +48,29 @@ module.exports = {
 
         //var scp_ac_pubkey = req.body.pubkey;
         var Eos_ecc = require('eosjs-ecc');
-        if (!Eos_ecc.isValidPublic(publicKeys.owner) || !Eos_ecc.isValidPublic(publicKeys.active)) { // validate pubkey
+
+        // Validate using PublicKey.fromString instead of isValidPublic (more reliable)
+        let ownerValid = false, activeValid = false;
+        try {
+            Eos_ecc.PublicKey.fromString(publicKeys.owner);
+            ownerValid = true;
+        } catch (e) {
+            console.error('## new_account - owner key INVALID:', e.message);
+        }
+
+        try {
+            Eos_ecc.PublicKey.fromString(publicKeys.active);
+            activeValid = true;
+        } catch (e) {
+            console.error('## new_account - active key INVALID:', e.message);
+        }
+
+        if (!ownerValid || !activeValid) {
+            console.error('## new_account - pubkey validation failed! owner:', publicKeys.owner, 'active:', publicKeys.active);
             res.status(400).send( { msg: "bad pubkey" } ); return; 
         }
+
+        console.log(`$$ new_account: creating account ${owner} with owner=${publicKeys.owner.substring(0, 20)}... active=${publicKeys.active.substring(0, 20)}...`);
 
         //console.log("new_account -         owner: " + owner + "...");
         //console.log("new_account -       h_email: " + h_email + "...");
@@ -60,8 +80,18 @@ module.exports = {
             tr.newaccount({
                 creator: config.get("scp_auth_account"),
                 name: owner,
-                owner: publicKeys.owner,
-                active: publicKeys.active 
+                owner: {
+                    threshold: 1,
+                    keys: [{ key: publicKeys.owner, weight: 1 }],
+                    accounts: [],
+                    waits: []
+                },
+                active: {
+                    threshold: 1,
+                    keys: [{ key: publicKeys.active, weight: 1 }],
+                    accounts: [],
+                    waits: []
+                }
             })
             tr.buyram({
                 payer: config.get("scp_auth_account"),
@@ -119,9 +149,12 @@ module.exports = {
 
         })
         .catch(err => {
-            console.error("## new_account ERR 1 (creating tx): " + JSON.stringify(err, null, 2));
-            res.statusMessage = "ERROR #1.CA " + err.statusText;
-            res.status(500).send({ msg: "ERROR #1.CA " + err.statusText });
+            console.error("## new_account ERR 1 (creating tx):", err);
+            console.error("## new_account ERR 1 - message:", err.message);
+            console.error("## new_account ERR 1 - stack:", err.stack);
+            const errMsg = err.message || err.statusText || err.toString();
+            res.statusMessage = "ERROR #1.CA " + errMsg;
+            res.status(500).send({ msg: "ERROR #1.CA " + errMsg });
         });
     },
 

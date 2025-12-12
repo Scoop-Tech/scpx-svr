@@ -38,9 +38,12 @@ RESTful node.js Express web server for the [Scoop Wallet](https://github.com/Sco
 
 ## Building from Source
 
-  * `nvm install v14.16.0`
-  * PowerShell: `$env:DEV = 1` - required for CORS patching
-  * Linux: `export DEV=1`
+  * `export DEV=1` - required for CORS patching
+    * PS: `$env:DEV = 1` 
+
+  * `export NODE_OPTIONS=--openssl-legacy-provider` -- required for eosjs v16 under node v14
+    * PS: `$env:NODE_OPTIONS = --openssl-legacy-provider` 
+
   * `npm start` or `nodemon`
   * see .\bin\www.js for config - default port is 3030
 
