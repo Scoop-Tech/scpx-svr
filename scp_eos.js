@@ -171,11 +171,12 @@ module.exports = {
         if (!h_email || h_email === undefined || h_email.length !== 32) { // expecting MD5 32 hex chars (128 bits)
             res.status(400).send({ msg: "bad h_email" }); return;
         }
-        const h_email_ui128_reversed = invertBytesMd5Hex(h_email); // hash bytes get endian-reversed when saved by the eos contract action
         
-        //console.log(`login_v2 -                e_email: ${e_email}`);
-        //console.log(`login_v2 -                h_email: ${h_email}`);
-        //console.log(`login_v2 - h_email_ui128_reversed: ${h_email_ui128_reversed}`);
+        // EOSIO v5/Antelope: NO byte reversal needed (was required in v1.7)
+        // const h_email_ui128_reversed = invertBytesMd5Hex(h_email);
+        const h_email_ui128 = new BigNumber(h_email, 16).toFixed();
+
+        console.log(`$$ login_v2: querying table for h_email_ui128: ${h_email_ui128} (email: ${req.body.email || 'n/a'})`);
 
         // retrieve by supplied email hash (secondary index)
         eos.getTableRows({
@@ -183,13 +184,15 @@ module.exports = {
             json: true,
             scope: config.get("scp_auth_account"),
             table: config.get("scp_table"),
-            lower_bound: '0x' + h_email_ui128_reversed,
-            upper_bound: '0x' + h_email_ui128_reversed,
+            lower_bound: h_email_ui128,
+            upper_bound: h_email_ui128,
             key_type: "i128",
             index_position: "2",
             limit: 1
         }).then(result => {
+            console.log(`$$ login_v2: getTableRows result:`, result);
             const user = result.rows[0];
+            console.log(`$$ login_v2: user from rows[0]:`, user);
             //console.dir(user);
 
             if (user != null && user != undefined) {
