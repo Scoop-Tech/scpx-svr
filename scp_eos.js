@@ -210,7 +210,7 @@ module.exports = {
 
                 //** L2 DECRYPT (all fields)
                 const dec_e_email = utils.aesDecryption(CryptoJS.MD5(user.owner).toString(), config.get("api_enc_key_1"), user.e_email);
-                    const dec_assets_json = utils.aesDecryption(CryptoJS.MD5(e_email + user.owner).toString(), config.get("api_enc_key_2"), user.assets_json);
+                const dec_assets_json = utils.aesDecryption(CryptoJS.MD5(e_email + user.owner).toString(), config.get("api_enc_key_2"), user.assets_json);
                 const dec_data_json = utils.aesDecryption(CryptoJS.MD5(e_email).toString(), config.get("api_enc_key_3"), user.data_json);
                 user.e_email = dec_e_email;
                 user.assets_json = dec_assets_json;
