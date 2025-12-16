@@ -30,20 +30,8 @@ console.log(info);
 console.log(`process.env.PORT: ${process.env.PORT}`);
 console.log(`process.env.DEV: ${process.env.DEV}`);
 
-// CRITICAL: Check for required NODE_OPTIONS for eosjs v16 compatibility
-if (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes('--openssl-legacy-provider')) {
-    console.error('');
-    console.error('##########################################################################');
-    console.error('## FATAL ERROR: NODE_OPTIONS=--openssl-legacy-provider is NOT set!');
-    console.error('## This is REQUIRED for eosjs v16 to work with Node.js v14+');
-    console.error('##');
-    console.error('## To fix:');
-    console.error('##   Local: export NODE_OPTIONS=--openssl-legacy-provider');
-    console.error('##   Azure: Add environment variable in App Service settings');
-    console.error('##########################################################################');
-    console.error('');
-    process.exit(1);
-}
+// Note: --openssl-legacy-provider is only needed for Node 17+
+// Node 16 (current Azure runtime) uses OpenSSL 1.x which already includes legacy algorithms
 
 // SQL connection (main - SCP DB)
 sql.on('error', err => { console.warn(`### sql.on (global handler): ${err.message}`, err); });
