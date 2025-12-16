@@ -30,8 +30,26 @@ console.log(info);
 console.log(`process.env.PORT: ${process.env.PORT}`);
 console.log(`process.env.DEV: ${process.env.DEV}`);
 
-// Note: --openssl-legacy-provider is only needed for Node 17+
-// Node 16 (current Azure runtime) uses OpenSSL 1.x which already includes legacy algorithms
+// Check for required NODE_OPTIONS for eosjs v16 compatibility with Node 17+
+// Node 17+ uses OpenSSL 3.0 which removed legacy algorithms
+// Node 16 and below use OpenSSL 1.x which includes legacy algorithms by default
+const nodeMajorVersion = parseInt(process.version.split('.')[0].substring(1));
+if (nodeMajorVersion >= 17 && (!process.env.NODE_OPTIONS || !process.env.NODE_OPTIONS.includes('--openssl-legacy-provider'))) {
+    console.error('');
+    console.error('##########################################################################');
+    console.error(`## FATAL ERROR: Running Node ${process.version} which requires --openssl-legacy-provider`);
+    console.error('## This flag is REQUIRED for eosjs v16 to work with Node.js 17+');
+    console.error('##');
+    console.error('## To fix:');
+    console.error('##   Local: export NODE_OPTIONS=--openssl-legacy-provider');
+    console.error('##   Azure: Add environment variable in App Service settings');
+    console.error('##   Or: Downgrade to Node 16 LTS');
+    console.error('##########################################################################');
+    console.error('');
+    process.exit(1);
+} else {
+    console.log(`Node ${process.version} - OpenSSL legacy provider check: ${nodeMajorVersion >= 17 ? 'REQUIRED and SET' : 'NOT REQUIRED'}`);
+}
 
 // SQL connection (main - SCP DB)
 sql.on('error', err => { console.warn(`### sql.on (global handler): ${err.message}`, err); });
