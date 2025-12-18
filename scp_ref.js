@@ -1,4 +1,4 @@
-// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2021 Dominic Morris.
+// Distributed under MS-RSL license: see /LICENSE for terms. Copyright 2019-2025 Dominic Morris.
 
 //
 // scp_ref -- referrals (v1 - thse are dumb one way invites; see scp_invite.js for v2 smart invites)
