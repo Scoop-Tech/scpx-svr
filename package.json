@@ -39,7 +39,7 @@
     "mssql": "^4.3.0",
     "nexmo": "^2.4.0",
     "promise": "^8.0.2",
-    "pug": "^2.0.3",
+    "pug": "^3.0.1",
     "scp-address-validator": "^0.2.8",
     "set-value": "^3.0.1",
     "web3": "^2.0.0-alpha.1"
